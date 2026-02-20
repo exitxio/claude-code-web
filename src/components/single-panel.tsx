@@ -31,6 +31,7 @@ export function SinglePanel() {
     if (!p || loading) return;
     setLoading(true);
     setResult(null);
+    const startTime = Date.now();
     try {
       const res = await fetch("/api/claude/run", {
         method: "POST",
@@ -39,9 +40,10 @@ export function SinglePanel() {
       });
       const data = await res.json();
       setResult(data);
-      if (data.durationMs) setLastDuration(data.durationMs);
+      setLastDuration(Date.now() - startTime);
     } catch (e) {
       setResult({ error: e instanceof Error ? e.message : "Request failed" });
+      setLastDuration(Date.now() - startTime);
     } finally {
       setLoading(false);
     }

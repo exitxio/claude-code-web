@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { signOut, useSession } from "next-auth/react";
 import { ChatPanel } from "./chat-panel";
 import { SinglePanel } from "./single-panel";
 import { UserClaudePanel } from "./user-claude-panel";
@@ -18,6 +19,7 @@ export function ChatInterface() {
   const [tab, setTab] = useState<Tab>("chat");
   const [claudeAuth, setClaudeAuth] = useState<boolean | null>(null);
   const [showLogin, setShowLogin] = useState(false);
+  const { data: session } = useSession();
 
   useEffect(() => {
     fetch("/api/claude/auth")
@@ -30,7 +32,7 @@ export function ChatInterface() {
     <div className="flex flex-col" style={{ height: "100dvh" }}>
       {/* Tab header */}
       <div className="flex items-center gap-1 px-6 py-3 border-b border-zinc-800 shrink-0">
-        <span className="text-sm font-medium text-zinc-200 mr-4">Claude Code</span>
+        <span className="text-sm font-medium text-zinc-200 mr-4">Claude Code Web</span>
         {(Object.keys(TAB_LABELS) as Tab[]).map((t) => (
           <button
             key={t}
@@ -43,8 +45,8 @@ export function ChatInterface() {
           </button>
         ))}
 
-        {/* Claude auth status */}
-        <div className="ml-auto flex items-center gap-2">
+        {/* Claude auth status + user logout */}
+        <div className="ml-auto flex items-center gap-3">
           {claudeAuth === false && (
             <button
               onClick={() => setShowLogin(true)}
@@ -55,6 +57,15 @@ export function ChatInterface() {
           )}
           {claudeAuth === true && (
             <span className="text-xs text-zinc-600">● Claude connected</span>
+          )}
+          {session?.user && (
+            <button
+              onClick={() => signOut({ callbackUrl: "/login" })}
+              title={`Signed in as ${session.user.name || session.user.email}`}
+              className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors"
+            >
+              {session.user.name || session.user.email} · Sign out
+            </button>
           )}
         </div>
       </div>

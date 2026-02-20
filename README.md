@@ -81,3 +81,25 @@ Browser → Next.js (web) → automation-server → Claude Code CLI
 - **automation-server** manages Claude Code worker pool via Agent SDK
 - Workers are isolated per user (session mode) or stateless (single mode)
 - After Claude login, workers restart automatically to pick up new credentials
+
+## FAQ
+
+**How is this different from claude.ai?**
+
+claude.ai is a chat interface. This runs the actual Claude Code CLI agent — file reading/writing, shell command execution, and tool use — on your own server. It also exposes an HTTP endpoint (`POST /run`) so you can integrate it into scripts and automation.
+
+**How is this different from CloudCLI or claude-code-webui?**
+
+Those projects wrap the Claude Code CLI as a subprocess and parse its output. This uses the [Agent SDK](https://www.npmjs.com/package/@anthropic-ai/claude-agent-sdk) directly to create and manage sessions programmatically. The result is a clean HTTP API — not a terminal scraper.
+
+**Is `bypassPermissions` safe?**
+
+See [docs/security.md](docs/security.md). In short: Claude Code's agent features require non-interactive approval. In a web server context there's no TTY, so `bypassPermissions` is the only mode that enables the full agent. It runs inside your own Docker container — you control what it can access.
+
+**Does this need an API key?**
+
+No. It authenticates with your existing Claude account via OAuth. No Anthropic API key required.
+
+## Docs
+
+- [Security](docs/security.md) — permission modes, network security, credential storage

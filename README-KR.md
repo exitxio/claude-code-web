@@ -2,6 +2,12 @@
 
 셀프호스팅 Claude Code 웹 채팅 인터페이스. 데이터베이스 불필요 — Docker만으로 완전 구동.
 
+<!-- screenshots -->
+<!-- ![로그인 화면](docs/screenshots/login.png) -->
+<!-- ![채팅 세션](docs/screenshots/chat.png) -->
+<!-- ![단발성 모드](docs/screenshots/single.png) -->
+<!-- ![My CLAUDE.md](docs/screenshots/claude-md.png) -->
+
 ## 기능
 
 - **멀티턴 채팅** — 세션 컨텍스트 유지
@@ -75,3 +81,25 @@ pnpm dev:all   # automation-server + Next.js 동시 실행
 - **automation-server** — Agent SDK를 통해 Claude Code 워커 풀 관리
 - 워커는 사용자별로 격리(세션 모드) 또는 상태 없음(단발성 모드)
 - Claude 로그인 후 새 자격증명을 반영하기 위해 워커가 자동 재시작
+
+## FAQ
+
+**claude.ai와 뭐가 다른가요?**
+
+claude.ai는 채팅 인터페이스입니다. 이 프로젝트는 실제 Claude Code CLI 에이전트 — 파일 읽기/쓰기, 셸 명령 실행, 도구 사용 — 를 자체 서버에서 실행합니다. HTTP endpoint(`POST /run`)도 노출하기 때문에 스크립트나 자동화에 연동할 수 있습니다.
+
+**CloudCLI나 claude-code-webui와 뭐가 다른가요?**
+
+그 프로젝트들은 Claude Code CLI를 자식 프로세스로 실행하고 출력을 파싱합니다. 이 프로젝트는 [Agent SDK](https://www.npmjs.com/package/@anthropic-ai/claude-agent-sdk)를 직접 사용해 세션을 프로그래밍적으로 생성하고 관리합니다. 결과적으로 깔끔한 HTTP API이지, 터미널 스크래퍼가 아닙니다.
+
+**`bypassPermissions`가 안전한가요?**
+
+[docs/security.md](docs/security.md)를 참고하세요. 요약하면: Claude Code의 에이전트 기능은 비대화형 승인이 필요합니다. 웹 서버 환경에는 TTY가 없어서 `bypassPermissions`가 전체 에이전트를 활성화하는 유일한 모드입니다. 자체 Docker 컨테이너 안에서 실행되므로 접근 범위를 직접 통제할 수 있습니다.
+
+**API 키가 필요한가요?**
+
+아니요. 기존 Claude 계정으로 OAuth 인증합니다. Anthropic API 키가 필요 없습니다.
+
+## 문서
+
+- [보안](docs/security.md) — 권한 모드, 네트워크 보안, 자격증명 저장

@@ -54,6 +54,7 @@ export function ChatPanel() {
     setInput("");
     setMessages((m) => [...m, { role: "user", content: prompt }]);
     setLoading(true);
+    const startTime = Date.now();
     try {
       const res = await fetch("/api/claude/run", {
         method: "POST",
@@ -61,12 +62,13 @@ export function ChatPanel() {
         body: JSON.stringify({ prompt, sessionId }),
       });
       const data = await res.json();
+      const durationMs = Date.now() - startTime;
       if (data.error) {
         setMessages((m) => [...m, { role: "assistant", content: data.error, error: true }]);
       } else {
         setMessages((m) => [
           ...m,
-          { role: "assistant", content: data.output || "*(empty response)*", durationMs: data.durationMs },
+          { role: "assistant", content: data.output || "*(empty response)*", durationMs },
         ]);
       }
     } catch (e) {
