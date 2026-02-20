@@ -4,11 +4,10 @@ Claude Code 에이전트를 HTTP endpoint로 노출하는 셀프호스팅 서버
 API 키 불필요 — 기존 Claude 구독으로 동작. \
 Docker 한 줄 배포.
 
-<!-- screenshots -->
-<!-- ![로그인 화면](docs/screenshots/login.png) -->
-<!-- ![채팅 세션](docs/screenshots/chat.png) -->
-<!-- ![단발성 모드](docs/screenshots/single.png) -->
-<!-- ![My CLAUDE.md](docs/screenshots/claude-md.png) -->
+![로그인 화면](docs/screenshots/login.png)
+![채팅 세션](docs/screenshots/chat.png)
+![단발성 모드](docs/screenshots/single.png)
+![My CLAUDE.md](docs/screenshots/claude-md.png)
 
 ## 이게 뭔가요?
 

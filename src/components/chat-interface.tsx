@@ -29,7 +29,7 @@ export function ChatInterface() {
   }, []);
 
   return (
-    <div className="flex flex-col h-dvh">
+    <div className="flex flex-col h-dvh overflow-hidden">
       {/* Tab header */}
       <div className="border-b border-zinc-800 shrink-0">
         <div className="flex items-center justify-between px-4 sm:px-6 py-2 sm:py-3">

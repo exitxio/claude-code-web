@@ -37,11 +37,11 @@ export function UserClaudePanel() {
   };
 
   return (
-    <div className="px-4 sm:px-6 py-5 max-w-3xl">
-      <p className="text-xs text-zinc-600 mb-1">
+    <div className="flex flex-col flex-1 min-h-0 px-4 sm:px-6 py-5">
+      <p className="text-xs text-zinc-600 mb-1 shrink-0">
         Your personal Claude instructions — applied on top of the global CLAUDE.md
       </p>
-      <p className="text-xs text-zinc-700 mb-4 font-mono">
+      <p className="text-xs text-zinc-700 mb-4 font-mono shrink-0">
         Stored per user in the automation server
       </p>
 
@@ -61,10 +61,9 @@ export function UserClaudePanel() {
               }
             }}
             placeholder={`## My settings\n- Name: John Doe\n- Prefer TypeScript\n- Reply in English`}
-            rows={20}
-            className="w-full px-3 py-2.5 bg-zinc-900 border border-zinc-800 rounded-lg text-sm text-zinc-100 placeholder:text-zinc-700 focus:outline-none focus:border-zinc-600 resize-y font-mono transition-colors mb-3"
+            className="flex-1 min-h-[120px] max-w-3xl w-full px-3 py-2.5 bg-zinc-900 border border-zinc-800 rounded-lg text-sm text-zinc-100 placeholder:text-zinc-700 focus:outline-none focus:border-zinc-600 resize-none font-mono transition-colors mb-3"
           />
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 shrink-0">
             <button
               onClick={handleSave}
               disabled={saving}

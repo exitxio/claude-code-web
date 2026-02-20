@@ -4,11 +4,10 @@ Self-hosted server that exposes the Claude Code agent as an HTTP endpoint. \
 No API key — runs on your existing Claude subscription. \
 One-command Docker deploy.
 
-<!-- screenshots -->
-<!-- ![Login screen](docs/screenshots/login.png) -->
-<!-- ![Chat session](docs/screenshots/chat.png) -->
-<!-- ![Single-shot mode](docs/screenshots/single.png) -->
-<!-- ![My CLAUDE.md](docs/screenshots/claude-md.png) -->
+![Login screen](docs/screenshots/login.png)
+![Chat session](docs/screenshots/chat.png)
+![Single-shot mode](docs/screenshots/single.png)
+![My CLAUDE.md](docs/screenshots/claude-md.png)
 
 ## What is this?
 
