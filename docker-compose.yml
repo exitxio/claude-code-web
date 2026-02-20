@@ -34,8 +34,6 @@ services:
       - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
       - AUTOMATION_SERVER_URL=http://automation-server:8080
       - USERS=${USERS:-}
-      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
-      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
     depends_on:
       automation-server:
         condition: service_healthy
