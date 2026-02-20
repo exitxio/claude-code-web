@@ -9,10 +9,10 @@ import { ClaudeLoginModal } from "./claude-login-modal";
 
 type Tab = "chat" | "single" | "my-claude";
 
-const TAB_LABELS: Record<Tab, string> = {
-  chat: "Chat",
-  single: "Single",
-  "my-claude": "My CLAUDE.md",
+const TAB_LABELS: Record<Tab, { full: string; short: string }> = {
+  chat: { full: "Chat", short: "Chat" },
+  single: { full: "Single", short: "Single" },
+  "my-claude": { full: "My CLAUDE.md", short: "CLAUDE" },
 };
 
 export function ChatInterface() {
@@ -44,7 +44,8 @@ export function ChatInterface() {
                   tab === t ? "bg-zinc-700 text-zinc-100" : "text-zinc-500 hover:text-zinc-300"
                 }`}
               >
-                {TAB_LABELS[t]}
+                <span className="sm:hidden">{TAB_LABELS[t].short}</span>
+                <span className="hidden sm:inline">{TAB_LABELS[t].full}</span>
               </button>
             ))}
           </div>

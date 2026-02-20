@@ -5,6 +5,7 @@ API 키 불필요 — 기존 Claude 구독으로 동작. \
 Docker 한 줄 배포.
 
 ![로그인 화면](docs/screenshots/login.png)
+![Claude OAuth 설정](docs/screenshots/oauth-modal.png)
 ![채팅 세션](docs/screenshots/chat.png)
 ![단발성 모드](docs/screenshots/single.png)
 ![My CLAUDE.md](docs/screenshots/claude-md.png)

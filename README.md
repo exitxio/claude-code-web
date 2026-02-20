@@ -5,6 +5,7 @@ No API key — runs on your existing Claude subscription. \
 One-command Docker deploy.
 
 ![Login screen](docs/screenshots/login.png)
+![Claude OAuth setup](docs/screenshots/oauth-modal.png)
 ![Chat session](docs/screenshots/chat.png)
 ![Single-shot mode](docs/screenshots/single.png)
 ![My CLAUDE.md](docs/screenshots/claude-md.png)
