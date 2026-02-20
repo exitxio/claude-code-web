@@ -10,7 +10,6 @@ export default async function LoginPage() {
   }
 
   const hasCredentials = !!process.env.USERS;
-  const hasGoogle = !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-zinc-950">
@@ -19,7 +18,7 @@ export default async function LoginPage() {
           <h1 className="text-xl font-semibold text-zinc-100">Claude Code Web</h1>
           <p className="text-sm text-zinc-500 mt-1">Sign in to continue</p>
         </div>
-        <LoginForm hasCredentials={hasCredentials} hasGoogle={hasGoogle} />
+        <LoginForm hasCredentials={hasCredentials} />
       </div>
     </div>
   );

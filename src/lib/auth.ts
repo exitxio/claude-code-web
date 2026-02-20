@@ -1,6 +1,5 @@
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import GoogleProvider from "next-auth/providers/google";
 import crypto from "crypto";
 
 // Parse USERS="username:password,user2:pass2" format
@@ -44,16 +43,6 @@ if (process.env.USERS) {
         }
         return { id: credentials.username, name: credentials.username, email: `${credentials.username}@local` };
       },
-    })
-  );
-}
-
-// Google OAuth (enabled when GOOGLE_CLIENT_ID is set)
-if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
-  providers.push(
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     })
   );
 }

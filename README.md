@@ -15,7 +15,6 @@ Self-hosted web chat interface for Claude Code. No database required — runs en
 - **Personal CLAUDE.md** — per-user instruction files
 - **Web-based Claude login** — OAuth flow in the UI, no local `~/.claude` mount needed
 - **Credentials auth** — env-based username/password (no DB)
-- **Google OAuth** — optional, enabled via `GOOGLE_CLIENT_ID`
 
 ## Quick Start
 
@@ -42,8 +41,6 @@ After logging in, click **"Claude: Not logged in"** in the header to authenticat
 | `NEXTAUTH_SECRET` | **required** | Random secret for JWT signing |
 | `NEXTAUTH_URL` | `http://localhost:3000` | Public URL of the app |
 | `USERS` | — | `username:password` pairs, comma-separated |
-| `GOOGLE_CLIENT_ID` | — | Google OAuth client ID |
-| `GOOGLE_CLIENT_SECRET` | — | Google OAuth client secret |
 | `CLAUDE_MODEL` | `claude-sonnet-4-6` | Claude model to use |
 | `AUTOMATION_POOL_SIZE` | `1` | Number of pre-warmed workers |
 | `PORT` | `3000` | Web port |

@@ -15,7 +15,6 @@
 - **개인 CLAUDE.md** — 사용자별 지시 파일
 - **웹 기반 Claude 로그인** — UI에서 OAuth 플로우 진행, 로컬 `~/.claude` 마운트 불필요
 - **자격증명 인증** — 환경변수 기반 아이디/패스워드 (DB 없음)
-- **Google OAuth** — `GOOGLE_CLIENT_ID` 설정 시 선택적 활성화
 
 ## 빠른 시작
 
@@ -42,8 +41,6 @@ http://localhost:3000 접속
 | `NEXTAUTH_SECRET` | **필수** | JWT 서명용 랜덤 시크릿 |
 | `NEXTAUTH_URL` | `http://localhost:3000` | 앱의 공개 URL |
 | `USERS` | — | `아이디:패스워드` 쌍, 쉼표로 구분 |
-| `GOOGLE_CLIENT_ID` | — | Google OAuth 클라이언트 ID |
-| `GOOGLE_CLIENT_SECRET` | — | Google OAuth 클라이언트 시크릿 |
 | `CLAUDE_MODEL` | `claude-sonnet-4-6` | 사용할 Claude 모델 |
 | `AUTOMATION_POOL_SIZE` | `1` | 사전 워밍 워커 수 |
 | `PORT` | `3000` | 웹 포트 |
