@@ -1,6 +1,8 @@
 # claude-code-web
 
-셀프호스팅 Claude Code 웹 채팅 인터페이스. 데이터베이스 불필요 — Docker만으로 완전 구동.
+Claude Code 에이전트를 HTTP endpoint로 노출하는 셀프호스팅 서버. \
+API 키 불필요 — 기존 Claude 구독으로 동작. \
+Docker 한 줄 배포.
 
 <!-- screenshots -->
 <!-- ![로그인 화면](docs/screenshots/login.png) -->
@@ -8,31 +10,59 @@
 <!-- ![단발성 모드](docs/screenshots/single.png) -->
 <!-- ![My CLAUDE.md](docs/screenshots/claude-md.png) -->
 
-## 기능
+## 이게 뭔가요?
 
-- **멀티턴 채팅** — 세션 컨텍스트 유지
-- **단발성 모드** — 상태 없는 워커 풀로 단건 요청 처리
-- **개인 CLAUDE.md** — 사용자별 지시 파일
-- **웹 기반 Claude 로그인** — UI에서 OAuth 플로우 진행, 로컬 `~/.claude` 마운트 불필요
-- **자격증명 인증** — 환경변수 기반 아이디/패스워드 (DB 없음)
+claude.ai는 채팅 UI입니다. 이건 다릅니다.
+
+**Claude Code CLI 에이전트** — 파일 읽기/쓰기, 셸 명령 실행, 도구 사용 — 를 HTTP endpoint로 노출합니다.
+
+```bash
+curl -X POST http://localhost:8080/run \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{"prompt": "이 디렉토리의 TypeScript 파일에서 any 타입 찾아서 고쳐줘"}'
+
+# {"success": true, "output": "...", "durationMs": 8432}
+```
+
+웹 UI는 이 위에 얹은 인터페이스일 뿐입니다.
+
+## 활용 예시
+
+- **Slack/Discord 봇** — 메시지 수신 → `POST /run` → 응답 전송
+- **CI 자동 코드 리뷰** — PR diff → `POST /run` → 리뷰 코멘트
+- **n8n / Make 자동화** — HTTP 노드로 Claude Code 연결
+- **배치 처리** — 문서 요약, 번역, 분석 파이프라인
+- **개인 AI 게이트웨이** — 개인 서버에 배포, 어디서든 브라우저로 접속
 
 ## 빠른 시작
 
 ```bash
-# 1. 환경변수 파일 복사
 cp .env.example .env
+# NEXTAUTH_SECRET=$(openssl rand -base64 32)
+# USERS=admin:yourpassword
 
-# 2. .env 편집 — 최소한 NEXTAUTH_SECRET과 USERS 설정
-#    NEXTAUTH_SECRET=$(openssl rand -base64 32)
-#    USERS=admin:yourpassword
-
-# 3. 시작
 docker compose up --build
 ```
 
-http://localhost:3000 접속
+http://localhost:3000 접속 → 로그인 → 헤더의 **"Not logged in · Setup"** 클릭 → Claude 계정 OAuth 인증
 
-로그인 후 헤더의 **"Claude: Not logged in"** 을 클릭해 Claude 계정 OAuth 인증을 진행합니다.
+## 기존 프로젝트와 차이
+
+| | CloudCLI / claude-code-webui | **claude-code-web** |
+|---|---|---|
+| 통합 방식 | CLI spawn + stdout 파싱 | **Agent SDK 직접 호출** |
+| HTTP API | 없음 | **`POST /run` endpoint** |
+| 외부 연동 | 웹 UI에서만 | **curl, 스크립트, 봇, CI** |
+| 인증 | 로컬 `~/.claude` 의존 | **웹 OAuth (Docker 내부)** |
+
+## 기능
+
+- **`POST /run`** — Claude Code 에이전트를 HTTP로 호출
+- **멀티턴 세션** — 사용자별 컨텍스트 유지
+- **단발성 모드** — 상태 없는 워커 풀, stateless 처리
+- **개인 CLAUDE.md** — 사용자별 커스텀 지시사항
+- **웹 OAuth** — API 키 없이 기존 Claude 구독으로 인증
+- **자격증명 인증** — 환경변수 기반 계정 관리 (DB 없음)
 
 ## 설정
 
@@ -47,55 +77,36 @@ http://localhost:3000 접속
 
 ## Claude 인증
 
-Claude 자격증명은 컨테이너 내부 `/home/node/.claude`에 마운트된 Docker named volume(`claude-auth`)에 저장됩니다. 로컬 `~/.claude` 디렉토리를 마운트하지 않아도 됩니다.
+Claude 자격증명은 Docker named volume(`claude-auth`)에 저장됩니다. 로컬 `~/.claude` 마운트 불필요.
 
-**인증 방법:**
-1. 앱에 접속해 계정으로 로그인
-2. 헤더의 **"Claude: Not logged in"** 클릭
-3. claude.ai OAuth 링크로 이동
-4. 콜백 페이지에서 인증 코드를 복사해 붙여넣기
-5. 새 자격증명으로 워커가 자동 재시작
-
-자격증명은 Docker volume을 통해 컨테이너 재시작 후에도 유지됩니다.
+1. 앱 접속 → 로그인
+2. 헤더의 **"Not logged in · Setup"** 클릭
+3. OAuth 링크로 claude.ai 이동 → 인증
+4. 콜백 페이지의 코드 복사 → 붙여넣기
+5. 워커 자동 재시작, 즉시 사용 가능
 
 ## 개발 환경
 
 ```bash
 pnpm install
 cp .env.example .env.local
-# .env.local 편집 (NEXTAUTH_SECRET, USERS 등)
-pnpm dev:all   # automation-server + Next.js 동시 실행
+pnpm dev:all
 ```
 
 ## 아키텍처
 
 ```
-브라우저 → Next.js (웹) → automation-server → Claude Code CLI
-                  ↕ HMAC 토큰 인증
+브라우저 / curl
+    ↓
+Next.js (인증, UI, 프록시)
+    ↓ HMAC 토큰
+automation-server (워커 풀 관리)
+    ↓ Agent SDK
+Claude Code CLI (에이전트 실행)
 ```
 
-- **Next.js** — 인증(NextAuth.js) 처리, UI 제공, API 호출 프록시
-- **automation-server** — Agent SDK를 통해 Claude Code 워커 풀 관리
-- 워커는 사용자별로 격리(세션 모드) 또는 상태 없음(단발성 모드)
-- Claude 로그인 후 새 자격증명을 반영하기 위해 워커가 자동 재시작
-
-## FAQ
-
-**claude.ai와 뭐가 다른가요?**
-
-claude.ai는 채팅 인터페이스입니다. 이 프로젝트는 실제 Claude Code CLI 에이전트 — 파일 읽기/쓰기, 셸 명령 실행, 도구 사용 — 를 자체 서버에서 실행합니다. HTTP endpoint(`POST /run`)도 노출하기 때문에 스크립트나 자동화에 연동할 수 있습니다.
-
-**CloudCLI나 claude-code-webui와 뭐가 다른가요?**
-
-그 프로젝트들은 Claude Code CLI를 자식 프로세스로 실행하고 출력을 파싱합니다. 이 프로젝트는 [Agent SDK](https://www.npmjs.com/package/@anthropic-ai/claude-agent-sdk)를 직접 사용해 세션을 프로그래밍적으로 생성하고 관리합니다. 결과적으로 깔끔한 HTTP API이지, 터미널 스크래퍼가 아닙니다.
-
-**`bypassPermissions`가 안전한가요?**
-
-[docs/security.md](docs/security.md)를 참고하세요. 요약하면: Claude Code의 에이전트 기능은 비대화형 승인이 필요합니다. 웹 서버 환경에는 TTY가 없어서 `bypassPermissions`가 전체 에이전트를 활성화하는 유일한 모드입니다. 자체 Docker 컨테이너 안에서 실행되므로 접근 범위를 직접 통제할 수 있습니다.
-
-**API 키가 필요한가요?**
-
-아니요. 기존 Claude 계정으로 OAuth 인증합니다. Anthropic API 키가 필요 없습니다.
+- **automation-server** — `@anthropic-ai/claude-agent-sdk`로 세션 관리. CLI를 subprocess로 spawn하지 않음.
+- **워커 풀** — 미리 예열된 세션으로 첫 응답 지연 최소화
 
 ## 문서
 

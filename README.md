@@ -1,6 +1,8 @@
 # claude-code-web
 
-Self-hosted web chat interface for Claude Code. No database required — runs entirely with Docker.
+Self-hosted server that exposes the Claude Code agent as an HTTP endpoint. \
+No API key — runs on your existing Claude subscription. \
+One-command Docker deploy.
 
 <!-- screenshots -->
 <!-- ![Login screen](docs/screenshots/login.png) -->
@@ -8,31 +10,59 @@ Self-hosted web chat interface for Claude Code. No database required — runs en
 <!-- ![Single-shot mode](docs/screenshots/single.png) -->
 <!-- ![My CLAUDE.md](docs/screenshots/claude-md.png) -->
 
-## Features
+## What is this?
 
-- **Multi-turn chat** with persistent session context
-- **Single-shot mode** — stateless rotation worker pool
-- **Personal CLAUDE.md** — per-user instruction files
-- **Web-based Claude login** — OAuth flow in the UI, no local `~/.claude` mount needed
-- **Credentials auth** — env-based username/password (no DB)
+claude.ai is a chat UI. This is different.
+
+It exposes the **Claude Code CLI agent** — file reading/writing, shell command execution, tool use — as an HTTP endpoint.
+
+```bash
+curl -X POST http://localhost:8080/run \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{"prompt": "Find all any types in this directory and fix them"}'
+
+# {"success": true, "output": "...", "durationMs": 8432}
+```
+
+The web UI is just one interface on top of that.
+
+## Use Cases
+
+- **Slack/Discord bot** — receive message → `POST /run` → send response
+- **CI code review** — PR diff → `POST /run` → post review comment
+- **n8n / Make automation** — connect Claude Code via HTTP node
+- **Batch processing** — document summarization, translation, analysis pipelines
+- **Personal AI gateway** — deploy on your server, access from any browser
 
 ## Quick Start
 
 ```bash
-# 1. Copy env example
 cp .env.example .env
+# NEXTAUTH_SECRET=$(openssl rand -base64 32)
+# USERS=admin:yourpassword
 
-# 2. Edit .env — set NEXTAUTH_SECRET and USERS at minimum
-#    NEXTAUTH_SECRET=$(openssl rand -base64 32)
-#    USERS=admin:yourpassword
-
-# 3. Start
 docker compose up --build
 ```
 
-Open http://localhost:3000
+Open http://localhost:3000 → log in → click **"Not logged in · Setup"** in the header → authenticate with your Claude account via OAuth.
 
-After logging in, click **"Claude: Not logged in"** in the header to authenticate with your Claude account via OAuth.
+## How It Differs
+
+| | CloudCLI / claude-code-webui | **claude-code-web** |
+|---|---|---|
+| Integration | CLI spawn + stdout parsing | **Agent SDK direct call** |
+| HTTP API | None | **`POST /run` endpoint** |
+| External access | Web UI only | **curl, scripts, bots, CI** |
+| Auth | Local `~/.claude` mount | **Web OAuth (inside Docker)** |
+
+## Features
+
+- **`POST /run`** — call the Claude Code agent over HTTP
+- **Multi-turn sessions** — per-user context persistence
+- **Single-shot mode** — stateless worker pool for one-off requests
+- **Personal CLAUDE.md** — per-user custom instructions
+- **Web OAuth** — authenticate with your Claude subscription, no API key
+- **Credentials auth** — env-based user management, no database
 
 ## Configuration
 
@@ -47,55 +77,36 @@ After logging in, click **"Claude: Not logged in"** in the header to authenticat
 
 ## Claude Authentication
 
-Claude credentials are stored in a named Docker volume (`claude-auth`) mounted at `/home/node/.claude` inside the container. No local `~/.claude` directory is mounted.
+Credentials are stored in a named Docker volume (`claude-auth`). No local `~/.claude` mount required.
 
-**To authenticate:**
-1. Open the app and log in with your account
-2. Click **"Claude: Not logged in"** in the header
-3. Follow the OAuth link to claude.ai
-4. Copy the authorization code from the callback page and paste it back
-5. Workers restart automatically with the new credentials
-
-Credentials persist across container restarts via the Docker volume.
+1. Open the app and log in
+2. Click **"Not logged in · Setup"** in the header
+3. Follow the OAuth link to claude.ai and sign in
+4. Copy the code from the callback page and paste it back
+5. Workers restart automatically — ready to use immediately
 
 ## Development
 
 ```bash
 pnpm install
 cp .env.example .env.local
-# Edit .env.local (NEXTAUTH_SECRET, USERS, etc.)
-pnpm dev:all   # run automation-server + Next.js concurrently
+pnpm dev:all
 ```
 
 ## Architecture
 
 ```
-Browser → Next.js (web) → automation-server → Claude Code CLI
-                  ↕ HMAC token auth
+Browser / curl
+    ↓
+Next.js (auth, UI, proxy)
+    ↓ HMAC token
+automation-server (worker pool)
+    ↓ Agent SDK
+Claude Code CLI (agent execution)
 ```
 
-- **Next.js** handles auth (NextAuth.js), serves UI, proxies API calls
-- **automation-server** manages Claude Code worker pool via Agent SDK
-- Workers are isolated per user (session mode) or stateless (single mode)
-- After Claude login, workers restart automatically to pick up new credentials
-
-## FAQ
-
-**How is this different from claude.ai?**
-
-claude.ai is a chat interface. This runs the actual Claude Code CLI agent — file reading/writing, shell command execution, and tool use — on your own server. It also exposes an HTTP endpoint (`POST /run`) so you can integrate it into scripts and automation.
-
-**How is this different from CloudCLI or claude-code-webui?**
-
-Those projects wrap the Claude Code CLI as a subprocess and parse its output. This uses the [Agent SDK](https://www.npmjs.com/package/@anthropic-ai/claude-agent-sdk) directly to create and manage sessions programmatically. The result is a clean HTTP API — not a terminal scraper.
-
-**Is `bypassPermissions` safe?**
-
-See [docs/security.md](docs/security.md). In short: Claude Code's agent features require non-interactive approval. In a web server context there's no TTY, so `bypassPermissions` is the only mode that enables the full agent. It runs inside your own Docker container — you control what it can access.
-
-**Does this need an API key?**
-
-No. It authenticates with your existing Claude account via OAuth. No Anthropic API key required.
+- **automation-server** — manages sessions via `@anthropic-ai/claude-agent-sdk`. Does not spawn the CLI as a subprocess.
+- **Worker pool** — pre-warmed sessions minimize first-response latency
 
 ## Docs
 

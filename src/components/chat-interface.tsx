@@ -31,42 +31,47 @@ export function ChatInterface() {
   return (
     <div className="flex flex-col h-dvh">
       {/* Tab header */}
-      <div className="flex items-center gap-1 px-6 py-3 border-b border-zinc-800 shrink-0">
-        <span className="text-sm font-medium text-zinc-200 mr-4">Claude Code Web</span>
-        {(Object.keys(TAB_LABELS) as Tab[]).map((t) => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={`text-xs px-3 py-1.5 rounded transition-colors ${
-              tab === t ? "bg-zinc-700 text-zinc-100" : "text-zinc-500 hover:text-zinc-300"
-            }`}
-          >
-            {TAB_LABELS[t]}
-          </button>
-        ))}
+      <div className="border-b border-zinc-800 shrink-0">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-2 sm:py-3">
+          <div className="flex items-center gap-1 min-w-0">
+            <span className="text-sm font-medium text-zinc-200 mr-2 sm:mr-4 shrink-0 hidden sm:inline">Claude Code Web</span>
+            <span className="text-sm font-medium text-zinc-200 mr-2 shrink-0 sm:hidden">CCW</span>
+            {(Object.keys(TAB_LABELS) as Tab[]).map((t) => (
+              <button
+                key={t}
+                onClick={() => setTab(t)}
+                className={`text-xs px-2 sm:px-3 py-1.5 rounded transition-colors whitespace-nowrap ${
+                  tab === t ? "bg-zinc-700 text-zinc-100" : "text-zinc-500 hover:text-zinc-300"
+                }`}
+              >
+                {TAB_LABELS[t]}
+              </button>
+            ))}
+          </div>
 
-        {/* Claude auth status + user logout */}
-        <div className="ml-auto flex items-center gap-3">
-          {claudeAuth === false && (
-            <button
-              onClick={() => setShowLogin(true)}
-              className="text-xs px-3 py-1.5 rounded bg-amber-900/40 border border-amber-700/50 text-amber-400 hover:bg-amber-900/60 transition-colors"
-            >
-              Not logged in · Setup
-            </button>
-          )}
-          {claudeAuth === true && (
-            <span className="text-xs text-zinc-600">● Claude connected</span>
-          )}
-          {session?.user && (
-            <button
-              onClick={() => signOut({ callbackUrl: "/login" })}
-              title={`Signed in as ${session.user.name || session.user.email}`}
-              className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors"
-            >
-              {session.user.name || session.user.email} · Sign out
-            </button>
-          )}
+          {/* Claude auth status + user logout */}
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0 ml-2">
+            {claudeAuth === false && (
+              <button
+                onClick={() => setShowLogin(true)}
+                className="text-xs px-2 sm:px-3 py-1.5 rounded bg-amber-900/40 border border-amber-700/50 text-amber-400 hover:bg-amber-900/60 transition-colors whitespace-nowrap"
+              >
+                <span className="hidden sm:inline">Not logged in · </span>Setup
+              </button>
+            )}
+            {claudeAuth === true && (
+              <span className="text-xs text-zinc-600 hidden sm:inline">● Claude connected</span>
+            )}
+            {session?.user && (
+              <button
+                onClick={() => signOut({ callbackUrl: "/login" })}
+                title={`Signed in as ${session.user.name || session.user.email}`}
+                className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors whitespace-nowrap"
+              >
+                <span className="hidden sm:inline">{session.user.name || session.user.email} · </span>Sign out
+              </button>
+            )}
+          </div>
         </div>
       </div>
 

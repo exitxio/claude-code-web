@@ -37,7 +37,7 @@ export function UserClaudePanel() {
   };
 
   return (
-    <div className="px-6 py-5 max-w-3xl">
+    <div className="px-4 sm:px-6 py-5 max-w-3xl">
       <p className="text-xs text-zinc-600 mb-1">
         Your personal Claude instructions — applied on top of the global CLAUDE.md
       </p>

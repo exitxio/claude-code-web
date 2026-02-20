@@ -78,8 +78,8 @@ export function ChatPanel() {
   return (
     <div className="flex flex-col flex-1 min-h-0">
       {/* Session bar */}
-      <div className="flex items-center justify-between px-6 py-2 border-b border-zinc-800/60 shrink-0">
-        <span className="text-xs text-zinc-600 font-mono">session {sessionId.slice(0, 8)}</span>
+      <div className="flex items-center justify-between px-4 sm:px-6 py-2 border-b border-zinc-800/60 shrink-0">
+        <span className="text-xs text-zinc-600 font-mono truncate">session {sessionId.slice(0, 8)}</span>
         <button
           onClick={newConversation}
           className="text-xs text-zinc-500 hover:text-zinc-300 border border-zinc-800 hover:border-zinc-600 px-2.5 py-1 rounded transition-colors"
@@ -89,7 +89,7 @@ export function ChatPanel() {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4 min-h-0">
+      <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-4 min-h-0">
         {messages.length === 0 && (
           <p className="text-xs text-zinc-600 text-center mt-12">
             Context is maintained across turns · {mod}Enter to send
@@ -128,7 +128,7 @@ export function ChatPanel() {
       </div>
 
       {/* Input */}
-      <div className="px-6 py-4 border-t border-zinc-800 shrink-0">
+      <div className="px-4 sm:px-6 py-3 sm:py-4 border-t border-zinc-800 shrink-0">
         <div className="flex gap-2 items-end">
           <textarea
             ref={textareaRef}
@@ -141,13 +141,13 @@ export function ChatPanel() {
               }
             }}
             placeholder={`Type a message... (${mod}Enter to send)`}
-            rows={3}
+            rows={2}
             className="flex-1 px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-sm text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-600 resize-none font-mono transition-colors"
           />
           <button
             onClick={handleSend}
             disabled={loading || !input.trim()}
-            className="px-4 h-[72px] bg-zinc-700 hover:bg-zinc-600 disabled:opacity-40 text-zinc-100 rounded-lg text-sm font-medium transition-colors"
+            className="px-3 sm:px-4 py-2 self-stretch bg-zinc-700 hover:bg-zinc-600 disabled:opacity-40 text-zinc-100 rounded-lg text-sm font-medium transition-colors"
           >
             Send
           </button>

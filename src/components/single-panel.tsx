@@ -44,7 +44,7 @@ export function SinglePanel() {
   };
 
   return (
-    <div className="px-6 py-5 max-w-3xl">
+    <div className="px-4 sm:px-6 py-5 max-w-3xl">
       <div className="flex items-center justify-between mb-4">
         <p className="text-xs text-zinc-600">
           Rotation worker pool — independent context per request · {mod}Enter to run
