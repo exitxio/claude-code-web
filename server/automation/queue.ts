@@ -141,6 +141,19 @@ export class AutomationQueue {
     };
   }
 
+  async restartWorkers(): Promise<void> {
+    console.log("[Automation] Restarting all workers after auth change...");
+    for (let i = 0; i < this.workers.length; i++) {
+      const w = this.workers[i];
+      if (w.state === "busy") continue; // skip busy workers
+      w.dispose();
+      this.replaceWorker(i);
+    }
+    // Also restart all user sessions
+    await this.sessions.shutdown();
+    console.log("[Automation] Worker restart triggered");
+  }
+
   async shutdown(): Promise<void> {
     console.log("[Automation] Shutting down...");
     if (this.healthInterval) {

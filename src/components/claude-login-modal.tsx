@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 
 interface Props {
   onClose: () => void;
@@ -9,79 +9,70 @@ interface Props {
 
 export function ClaudeLoginModal({ onClose, onSuccess }: Props) {
   const [loginUrl, setLoginUrl] = useState<string | null>(null);
-  const [status, setStatus] = useState<"idle" | "waiting" | "success" | "failed">("idle");
+  const [status, setStatus] = useState<"idle" | "waiting" | "success" | "error">("idle");
   const [message, setMessage] = useState<string | null>(null);
-  const abortRef = useRef<AbortController | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [code, setCode] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  // Start OAuth on mount
+  useEffect(() => {
+    startLogin();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const startLogin = async () => {
-    abortRef.current?.abort();
-    const ctrl = new AbortController();
-    abortRef.current = ctrl;
-
-    setStatus("waiting");
+    setStatus("idle");
     setLoginUrl(null);
     setMessage(null);
+    setCode("");
 
     try {
-      const res = await fetch("/api/claude/auth", { method: "POST", signal: ctrl.signal });
-      if (!res.body) return;
+      const res = await fetch("/api/claude/auth", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok || !data.url) {
+        setStatus("error");
+        setMessage(data.error || "Failed to start login.");
+        return;
+      }
+      setLoginUrl(data.url);
+      setStatus("waiting");
+    } catch (e: unknown) {
+      setStatus("error");
+      setMessage(e instanceof Error ? e.message : "Failed to start login.");
+    }
+  };
 
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let buf = "";
+  const copyUrl = () => {
+    if (!loginUrl) return;
+    navigator.clipboard.writeText(loginUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        buf += decoder.decode(value, { stream: true });
-        const parts = buf.split("\n\n");
-        buf = parts.pop() ?? "";
-
-        for (const part of parts) {
-          const eventMatch = part.match(/^event: (\w+)/m);
-          const dataMatch = part.match(/^data: (.+)/m);
-          if (!dataMatch) continue;
-
-          const eventType = eventMatch?.[1] ?? "output";
-          const payload = JSON.parse(dataMatch[1]);
-
-          if (eventType === "url") {
-            setLoginUrl(payload.url);
-          } else if (eventType === "done") {
-            if (payload.success) {
-              setStatus("success");
-              setTimeout(onSuccess, 1500);
-            } else {
-              setStatus("failed");
-              setMessage(`Process exited with code ${payload.code}`);
-            }
-          } else if (eventType === "error") {
-            setStatus("failed");
-            setMessage(payload.text);
-          }
-        }
+  const submitCode = async () => {
+    if (!code.trim()) return;
+    setSubmitting(true);
+    setMessage(null);
+    try {
+      const res = await fetch("/api/claude/auth?action=exchange", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: code.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setMessage(data.error || "Failed to exchange code.");
+      } else {
+        setStatus("success");
+        setTimeout(onSuccess, 1200);
       }
     } catch (e: unknown) {
-      if (e instanceof Error && e.name !== "AbortError") {
-        setStatus("failed");
-        setMessage(e.message);
-      }
+      setMessage(e instanceof Error ? e.message : "Failed to exchange code.");
+    } finally {
+      setSubmitting(false);
     }
   };
-
-  const checkStatus = async () => {
-    const res = await fetch("/api/claude/auth");
-    const data = await res.json();
-    if (data.authenticated) {
-      setStatus("success");
-      setTimeout(onSuccess, 1000);
-    } else {
-      setMessage("Not authenticated yet.");
-    }
-  };
-
-  useEffect(() => () => abortRef.current?.abort(), []);
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
@@ -92,58 +83,67 @@ export function ClaudeLoginModal({ onClose, onSuccess }: Props) {
         </div>
 
         {status === "idle" && (
-          <>
-            <p className="text-sm text-zinc-400">
-              Click the button below to start the Claude login flow. A URL will appear — open it in your browser to authenticate.
-            </p>
-            <button
-              onClick={startLogin}
-              className="px-4 py-2 bg-zinc-700 hover:bg-zinc-600 text-zinc-100 rounded-lg text-sm font-medium transition-colors"
-            >
-              Login with Claude
-            </button>
-          </>
+          <p className="text-sm text-zinc-400 animate-pulse">Generating login URL…</p>
         )}
 
-        {status === "waiting" && (
+        {status === "waiting" && loginUrl && (
           <div className="flex flex-col gap-4">
-            {!loginUrl ? (
-              <p className="text-sm text-zinc-400 animate-pulse">Starting login flow…</p>
-            ) : (
-              <>
-                <p className="text-sm text-zinc-300">
-                  Open the link below in your browser to complete login:
-                </p>
+            <div className="flex flex-col gap-2">
+              <p className="text-sm text-zinc-300">
+                Step 1 — Open this URL and sign in to Claude:
+              </p>
+              <div className="flex gap-2 items-start">
                 <a
                   href={loginUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs text-blue-400 hover:text-blue-300 underline break-all bg-black rounded-lg px-3 py-2 font-mono"
+                  className="flex-1 text-xs text-blue-400 hover:text-blue-300 underline break-all bg-black rounded-lg px-3 py-2 font-mono"
                 >
                   {loginUrl}
                 </a>
-                <p className="text-xs text-zinc-500">
-                  After completing login in your browser, click <strong className="text-zinc-300">Check Status</strong>.
-                </p>
                 <button
-                  onClick={checkStatus}
-                  className="px-4 py-2 bg-zinc-700 hover:bg-zinc-600 text-zinc-100 rounded-lg text-sm font-medium transition-colors"
+                  onClick={copyUrl}
+                  className="shrink-0 px-3 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg text-xs font-medium transition-colors"
                 >
-                  Check Status
+                  {copied ? "Copied!" : "Copy"}
                 </button>
-              </>
-            )}
-            {message && <p className="text-xs text-zinc-500">{message}</p>}
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <p className="text-sm text-zinc-300">
+                Step 2 — After signing in, the callback page shows a code. Paste the full code here:
+              </p>
+              <p className="text-xs text-zinc-500">
+                The code looks like: <span className="font-mono text-zinc-400">aBcDeFg…#xYz123…</span>
+              </p>
+              <textarea
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                placeholder="Paste the full code here (includes # character)…"
+                rows={2}
+                className="w-full bg-black text-zinc-200 text-xs font-mono rounded-lg px-3 py-2 border border-zinc-700 focus:outline-none focus:border-zinc-500 resize-none"
+              />
+              <button
+                onClick={submitCode}
+                disabled={!code.trim() || submitting}
+                className="px-4 py-2 bg-blue-700 hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-zinc-100 rounded-lg text-sm font-medium transition-colors"
+              >
+                {submitting ? "Signing in…" : "Sign In"}
+              </button>
+            </div>
+
+            {message && <p className="text-xs text-amber-400">{message}</p>}
           </div>
         )}
 
         {status === "success" && (
-          <p className="text-sm text-green-400 text-center">✓ Authenticated! Closing…</p>
+          <p className="text-sm text-green-400 text-center">✓ Signed in! Closing…</p>
         )}
 
-        {status === "failed" && (
+        {status === "error" && (
           <div className="flex flex-col gap-3">
-            <p className="text-sm text-red-400">Login failed. {message}</p>
+            <p className="text-sm text-red-400">{message || "Login failed."}</p>
             <button
               onClick={startLogin}
               className="px-4 py-2 bg-zinc-700 hover:bg-zinc-600 text-zinc-100 rounded-lg text-sm font-medium transition-colors"

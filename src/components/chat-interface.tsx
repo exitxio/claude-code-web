@@ -59,11 +59,15 @@ export function ChatInterface() {
         </div>
       </div>
 
-      {/* Tab content */}
-      <div className="flex-1 min-h-0 flex flex-col overflow-y-auto">
-        {tab === "chat" && <ChatPanel />}
-        {tab === "single" && <SinglePanel />}
-        {tab === "my-claude" && <UserClaudePanel />}
+      {/* Tab content — always mounted, hidden when inactive */}
+      <div className={`flex-1 min-h-0 flex flex-col${tab === "chat" ? "" : " hidden"}`}>
+        <ChatPanel />
+      </div>
+      <div className={`flex-1 min-h-0 flex flex-col${tab === "single" ? "" : " hidden"}`}>
+        <SinglePanel />
+      </div>
+      <div className={`flex-1 min-h-0 flex flex-col${tab === "my-claude" ? "" : " hidden"}`}>
+        <UserClaudePanel />
       </div>
 
       {showLogin && (

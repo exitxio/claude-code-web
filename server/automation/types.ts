@@ -2,15 +2,15 @@ export type WorkerState = "initializing" | "ready" | "busy" | "error" | "dispose
 
 export interface RunRequest {
   prompt: string;
-  sessionId?: string;      // 세션 ID — 있으면 per-session 컨텍스트 유지
-  userId?: string;         // 사용자 ID — 메모리 격리에 사용
-  timeoutMs?: number;      // 하드 타임아웃, default 120000
-  idleTimeoutMs?: number;  // idle 타임아웃, default 8000
+  sessionId?: string;      // session ID — if present, context is maintained across requests
+  userId?: string;         // user ID — used for memory isolation
+  timeoutMs?: number;      // hard timeout, default 120000
+  idleTimeoutMs?: number;  // idle timeout, default 8000
 }
 
 export interface RunResult {
   success: boolean;
-  output: string;          // 텍스트 결과
+  output: string;          // text result
   durationMs: number;
   timedOut: boolean;
   timeoutType?: "idle" | "hard";

@@ -3,7 +3,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import crypto from "crypto";
 
-// USERS="username:password,user2:pass2" 형식 파싱
+// Parse USERS="username:password,user2:pass2" format
 function parseUsers(): Map<string, string> {
   const map = new Map<string, string>();
   const raw = process.env.USERS || "";
@@ -19,7 +19,7 @@ function parseUsers(): Map<string, string> {
 
 const providers: NextAuthOptions["providers"] = [];
 
-// env 기반 계정 (USERS 설정 시 활성화)
+// Credentials-based accounts (enabled when USERS is set)
 if (process.env.USERS) {
   providers.push(
     CredentialsProvider({
@@ -33,7 +33,7 @@ if (process.env.USERS) {
         const users = parseUsers();
         const storedPassword = users.get(credentials.username);
         if (!storedPassword) return null;
-        // timing-safe 비교
+        // timing-safe comparison
         const inputBuf = Buffer.from(credentials.password);
         const storedBuf = Buffer.from(storedPassword);
         if (
@@ -48,7 +48,7 @@ if (process.env.USERS) {
   );
 }
 
-// Google OAuth (GOOGLE_CLIENT_ID 설정 시 활성화)
+// Google OAuth (enabled when GOOGLE_CLIENT_ID is set)
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
   providers.push(
     GoogleProvider({

@@ -3,6 +3,16 @@
 import { useState, useRef, useEffect } from "react";
 import { Markdown } from "./markdown";
 
+function ElapsedTimer() {
+  const [elapsed, setElapsed] = useState(0);
+  useEffect(() => {
+    const start = Date.now();
+    const id = setInterval(() => setElapsed(Date.now() - start), 100);
+    return () => clearInterval(id);
+  }, []);
+  return <span>{(elapsed / 1000).toFixed(1)}s</span>;
+}
+
 interface Message {
   role: "user" | "assistant";
   content: string;
@@ -113,8 +123,8 @@ export function ChatPanel() {
         ))}
         {loading && (
           <div className="flex justify-start">
-            <div className="bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2.5 text-sm text-zinc-500 animate-pulse">
-              Thinking...
+            <div className="bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2.5 text-sm text-zinc-500 font-mono">
+              <ElapsedTimer />
             </div>
           </div>
         )}

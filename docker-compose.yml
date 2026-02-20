@@ -10,9 +10,9 @@ services:
       - AUTOMATION_POOL_SIZE=${AUTOMATION_POOL_SIZE:-1}
       - CLAUDE_MODEL=${CLAUDE_MODEL:-claude-sonnet-4-6}
     volumes:
-      # Claude 인증 데이터 (docker volume에 영구 저장)
+      # Claude auth data (persisted in a named Docker volume)
       - claude-auth:/home/node/.claude
-      # 사용자별 워크스페이스 (세션 컨텍스트 + CLAUDE.md 저장)
+      # Per-user workspaces (session context + CLAUDE.md storage)
       - automation-home:/home/node/users
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]

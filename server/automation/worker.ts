@@ -7,7 +7,7 @@ import {
 import type { WorkerState, RunRequest, RunResult } from "./types";
 
 const DEFAULT_TIMEOUT_MS = 120_000;
-// 환경변수로 모델 선택 가능, 기본값: claude-sonnet-4-6
+// Model can be overridden via CLAUDE_MODEL env var, default: claude-sonnet-4-6
 const CLAUDE_MODEL = process.env.CLAUDE_MODEL || "claude-sonnet-4-6";
 
 function sanitizeUserId(userId: string): string {
@@ -65,11 +65,11 @@ export class AutomationWorker {
     }
     env.CLAUDE_CODE_SKIP_BYPASS_PERMISSIONS_WARNING = "1";
     env.DISABLE_INSTALLATION_CHECKS = "1";
-    // 중첩 Claude Code 세션 방지 에러 우회
+    // Prevent nested Claude Code session error
     delete env.CLAUDECODE;
 
-    // 구독 모드: ANTHROPIC_API_KEY 제외 → claude 바이너리가 ~/.claude/ 인증 사용
-    // API 키 모드 유지하려면 USE_CLAUDE_API_KEY=1 설정
+    // Subscription mode: remove ANTHROPIC_API_KEY so the claude binary uses ~/.claude/ auth
+    // Set USE_CLAUDE_API_KEY=1 to keep API key mode
     if (!process.env.USE_CLAUDE_API_KEY) {
       delete env.ANTHROPIC_API_KEY;
     }
@@ -87,7 +87,7 @@ export class AutomationWorker {
         try { execSync("git init", { cwd: this.projectDir, stdio: "ignore" }); } catch {}
       }
 
-      // 익명 워커: 이전 메모리 삭제 (stateless 보장)
+      // Anonymous worker: clear previous memory to ensure stateless requests
       if (this.projectDir.endsWith("/_anonymous")) {
         const projectKey = this.projectDir.replace(/^\//, "").replace(/\//g, "-");
         const memFile = `/home/node/.claude/projects/${projectKey}/memory/MEMORY.md`;

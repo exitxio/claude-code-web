@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Markdown } from "./markdown";
 
 interface SingleResult {
@@ -10,11 +10,21 @@ interface SingleResult {
   success?: boolean;
 }
 
+function ElapsedTimer() {
+  const [elapsed, setElapsed] = useState(0);
+  useEffect(() => {
+    const start = Date.now();
+    const id = setInterval(() => setElapsed(Date.now() - start), 100);
+    return () => clearInterval(id);
+  }, []);
+  return <span className="text-xs font-mono text-zinc-500">{(elapsed / 1000).toFixed(1)}s</span>;
+}
+
 export function SinglePanel() {
   const [prompt, setPrompt] = useState("");
   const [result, setResult] = useState<SingleResult | null>(null);
   const [loading, setLoading] = useState(false);
-  const [history, setHistory] = useState<number[]>([]);
+  const [lastDuration, setLastDuration] = useState<number | null>(null);
 
   const handleRun = async () => {
     const p = prompt.trim();
@@ -29,9 +39,7 @@ export function SinglePanel() {
       });
       const data = await res.json();
       setResult(data);
-      if (data.durationMs) {
-        setHistory((h) => [...h.slice(-9), data.durationMs]);
-      }
+      if (data.durationMs) setLastDuration(data.durationMs);
     } catch (e) {
       setResult({ error: e instanceof Error ? e.message : "Request failed" });
     } finally {
@@ -45,21 +53,11 @@ export function SinglePanel() {
         <p className="text-xs text-zinc-600">
           Rotation worker pool — independent context per request · ⌘Enter to run
         </p>
-        {history.length > 0 && (
-          <div className="flex items-center gap-1">
-            {history.map((ms, i) => (
-              <span
-                key={i}
-                title={`${(ms / 1000).toFixed(1)}s`}
-                className={`text-[10px] font-mono px-1 py-0.5 rounded ${
-                  i === history.length - 1 ? "bg-zinc-700 text-zinc-200" : "text-zinc-600"
-                }`}
-              >
-                {(ms / 1000).toFixed(1)}s
-              </span>
-            ))}
-          </div>
-        )}
+        <div className="w-12 text-right">
+          {loading ? <ElapsedTimer /> : lastDuration != null ? (
+            <span className="text-xs font-mono text-zinc-600">{(lastDuration / 1000).toFixed(1)}s</span>
+          ) : null}
+        </div>
       </div>
 
       <textarea
@@ -82,7 +80,7 @@ export function SinglePanel() {
           disabled={loading || !prompt.trim()}
           className="h-8 px-4 bg-zinc-700 hover:bg-zinc-600 disabled:opacity-40 text-zinc-100 rounded-lg text-sm font-medium transition-colors"
         >
-          {loading ? "Running..." : "Run"}
+          {loading ? "Running…" : "Run"}
         </button>
       </div>
 

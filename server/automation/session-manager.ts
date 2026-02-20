@@ -1,7 +1,7 @@
 import { AutomationWorker } from "./worker";
 import type { RunRequest, RunResult } from "./types";
 
-const IDLE_TIMEOUT_MS = 30 * 60 * 1000; // 30분
+const IDLE_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
 const MAX_SESSIONS = 20;
 
 interface PendingItem {
