@@ -2,16 +2,8 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Markdown } from "./markdown";
-
-function ElapsedTimer() {
-  const [elapsed, setElapsed] = useState(0);
-  useEffect(() => {
-    const start = Date.now();
-    const id = setInterval(() => setElapsed(Date.now() - start), 100);
-    return () => clearInterval(id);
-  }, []);
-  return <span>{(elapsed / 1000).toFixed(1)}s</span>;
-}
+import { ElapsedTimer } from "./elapsed-timer";
+import { useIsMac, modKeyLabel } from "./use-platform";
 
 interface Message {
   role: "user" | "assistant";
@@ -27,6 +19,8 @@ export function ChatPanel() {
   const [sessionId, setSessionId] = useState<string>("");
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const isMac = useIsMac();
+  const mod = modKeyLabel(isMac);
 
   useEffect(() => {
     setSessionId((prev) => prev || crypto.randomUUID());
@@ -45,7 +39,7 @@ export function ChatPanel() {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ sessionId: old }),
-    }).catch(() => {});
+    }).catch(() => { /* best-effort cleanup */ });
   };
 
   const handleSend = async () => {
@@ -98,7 +92,7 @@ export function ChatPanel() {
       <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4 min-h-0">
         {messages.length === 0 && (
           <p className="text-xs text-zinc-600 text-center mt-12">
-            Context is maintained across turns · ⌘Enter to send
+            Context is maintained across turns · {mod}Enter to send
           </p>
         )}
         {messages.map((msg, i) => (
@@ -146,15 +140,14 @@ export function ChatPanel() {
                 handleSend();
               }
             }}
-            placeholder="Type a message... (⌘Enter to send)"
+            placeholder={`Type a message... (${mod}Enter to send)`}
             rows={3}
             className="flex-1 px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-sm text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-600 resize-none font-mono transition-colors"
           />
           <button
             onClick={handleSend}
             disabled={loading || !input.trim()}
-            className="px-4 bg-zinc-700 hover:bg-zinc-600 disabled:opacity-40 text-zinc-100 rounded-lg text-sm font-medium transition-colors"
-            style={{ height: "72px" }}
+            className="px-4 h-[72px] bg-zinc-700 hover:bg-zinc-600 disabled:opacity-40 text-zinc-100 rounded-lg text-sm font-medium transition-colors"
           >
             Send
           </button>

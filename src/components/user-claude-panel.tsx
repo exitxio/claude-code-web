@@ -1,18 +1,22 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useIsMac, modKeyLabel } from "./use-platform";
 
 export function UserClaudePanel() {
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const isMac = useIsMac();
+  const mod = modKeyLabel(isMac);
 
   useEffect(() => {
     fetch("/api/claude/user-md")
       .then((r) => r.json())
       .then((d) => setContent(d.content ?? ""))
-      .catch(() => {})
+      .catch(() => setError("Failed to load CLAUDE.md"))
       .finally(() => setLoading(false));
   }, []);
 
@@ -42,7 +46,9 @@ export function UserClaudePanel() {
       </p>
 
       {loading ? (
-        <div className="text-xs text-zinc-600">Loading...</div>
+        <div className="text-xs text-zinc-600 animate-pulse">Loading...</div>
+      ) : error ? (
+        <div className="text-xs text-red-400">{error}</div>
       ) : (
         <>
           <textarea
@@ -66,7 +72,7 @@ export function UserClaudePanel() {
             >
               {saving ? "Saving..." : "Save"}
             </button>
-            <span className="text-xs text-zinc-600">⌘S to save</span>
+            <span className="text-xs text-zinc-600">{mod}S to save</span>
             {saved && <span className="text-xs text-green-500">Saved</span>}
           </div>
         </>

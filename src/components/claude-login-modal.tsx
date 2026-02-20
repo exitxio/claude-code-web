@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 interface Props {
   onClose: () => void;
@@ -14,6 +14,19 @@ export function ClaudeLoginModal({ onClose, onSuccess }: Props) {
   const [copied, setCopied] = useState(false);
   const [code, setCode] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  // Close on Escape key
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    },
+    [onClose],
+  );
+
+  useEffect(() => {
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [handleKeyDown]);
 
   // Start OAuth on mount
   useEffect(() => {
@@ -75,10 +88,16 @@ export function ClaudeLoginModal({ onClose, onSuccess }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-      <div className="bg-zinc-900 border border-zinc-700 rounded-xl w-full max-w-lg flex flex-col gap-5 p-6">
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="claude-login-title"
+        className="bg-zinc-900 border border-zinc-700 rounded-xl w-full max-w-lg flex flex-col gap-5 p-6"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between">
-          <h2 className="text-base font-semibold text-zinc-100">Claude Login</h2>
+          <h2 id="claude-login-title" className="text-base font-semibold text-zinc-100">Claude Login</h2>
           <button onClick={onClose} className="text-zinc-500 hover:text-zinc-300 text-lg leading-none">✕</button>
         </div>
 

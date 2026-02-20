@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Markdown } from "./markdown";
+import { ElapsedTimer } from "./elapsed-timer";
+import { useIsMac, modKeyLabel } from "./use-platform";
 
 interface SingleResult {
   output?: string;
@@ -10,21 +12,13 @@ interface SingleResult {
   success?: boolean;
 }
 
-function ElapsedTimer() {
-  const [elapsed, setElapsed] = useState(0);
-  useEffect(() => {
-    const start = Date.now();
-    const id = setInterval(() => setElapsed(Date.now() - start), 100);
-    return () => clearInterval(id);
-  }, []);
-  return <span className="text-xs font-mono text-zinc-500">{(elapsed / 1000).toFixed(1)}s</span>;
-}
-
 export function SinglePanel() {
   const [prompt, setPrompt] = useState("");
   const [result, setResult] = useState<SingleResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [lastDuration, setLastDuration] = useState<number | null>(null);
+  const isMac = useIsMac();
+  const mod = modKeyLabel(isMac);
 
   const handleRun = async () => {
     const p = prompt.trim();
@@ -53,10 +47,10 @@ export function SinglePanel() {
     <div className="px-6 py-5 max-w-3xl">
       <div className="flex items-center justify-between mb-4">
         <p className="text-xs text-zinc-600">
-          Rotation worker pool — independent context per request · ⌘Enter to run
+          Rotation worker pool — independent context per request · {mod}Enter to run
         </p>
         <div className="w-12 text-right">
-          {loading ? <ElapsedTimer /> : lastDuration != null ? (
+          {loading ? <ElapsedTimer className="text-xs font-mono text-zinc-500" /> : lastDuration != null ? (
             <span className="text-xs font-mono text-zinc-600">{(lastDuration / 1000).toFixed(1)}s</span>
           ) : null}
         </div>

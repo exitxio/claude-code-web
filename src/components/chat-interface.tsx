@@ -29,7 +29,7 @@ export function ChatInterface() {
   }, []);
 
   return (
-    <div className="flex flex-col" style={{ height: "100dvh" }}>
+    <div className="flex flex-col h-dvh">
       {/* Tab header */}
       <div className="flex items-center gap-1 px-6 py-3 border-b border-zinc-800 shrink-0">
         <span className="text-sm font-medium text-zinc-200 mr-4">Claude Code Web</span>
