@@ -4,7 +4,8 @@ const AUTOMATION_SERVER_URL =
   process.env.AUTOMATION_SERVER_URL || "http://localhost:8080";
 
 export function generateToken(username: string): string {
-  const secret = process.env.NEXTAUTH_SECRET || "fallback-secret";
+  const secret = process.env.NEXTAUTH_SECRET;
+  if (!secret) throw new Error("NEXTAUTH_SECRET is not set");
   const timestamp = Date.now();
   const data = `${username}:${timestamp}`;
   const hmac = crypto.createHmac("sha256", secret).update(data).digest("hex");

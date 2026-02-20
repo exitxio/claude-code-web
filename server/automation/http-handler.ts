@@ -24,8 +24,8 @@ interface OAuthState {
   createdAt: number;
 }
 
-// Single global OAuth session (Claude auth is shared)
-let pendingOAuth: OAuthState | null = null;
+const OAUTH_EXPIRY_MS = 10 * 60 * 1000; // 10 minutes
+const pendingOAuthMap = new Map<string, OAuthState>();
 
 function generateCodeVerifier(): string {
   return crypto.randomBytes(32).toString("base64url");
@@ -95,7 +95,11 @@ export class AutomationHttpHandler {
 
   constructor(queue: AutomationQueue) {
     this.queue = queue;
-    this.secret = process.env.NEXTAUTH_SECRET || "fallback-secret";
+    const secret = process.env.NEXTAUTH_SECRET;
+    if (!secret) {
+      throw new Error("NEXTAUTH_SECRET is required. Set it in .env or environment variables.");
+    }
+    this.secret = secret;
   }
 
   async handle(req: IncomingMessage, res: ServerResponse): Promise<boolean> {
@@ -223,7 +227,7 @@ export class AutomationHttpHandler {
       return;
     }
 
-    console.log(`[Run] userId=${userId} sessionId=${parsed.sessionId ?? "none"} prompt=${parsed.prompt.slice(0, 30)}`);
+    console.log(`[Run] userId=${userId} sessionId=${parsed.sessionId ?? "none"} promptLen=${parsed.prompt.length}`);
     try {
       const result = await this.queue.run({ ...parsed, userId });
       json(res, 200, {
@@ -261,9 +265,14 @@ export class AutomationHttpHandler {
     }
 
     const filePath = userClaudePath(userId);
-    fs.mkdirSync(path.dirname(filePath), { recursive: true });
-    fs.writeFileSync(filePath, parsed.content ?? "");
-    json(res, 200, { saved: true });
+    try {
+      fs.mkdirSync(path.dirname(filePath), { recursive: true });
+      fs.writeFileSync(filePath, parsed.content ?? "");
+      json(res, 200, { saved: true });
+    } catch (err) {
+      console.error("[Automation] Failed to write CLAUDE.md:", err);
+      json(res, 500, { error: "Failed to save file" });
+    }
   }
 
   private handleAuthStatus(res: ServerResponse): void {
@@ -288,8 +297,8 @@ export class AutomationHttpHandler {
     const codeChallenge = generateCodeChallenge(codeVerifier);
     const state = generateState();
 
-    // Store for later exchange
-    pendingOAuth = { codeVerifier, state, createdAt: Date.now() };
+    // Store for later exchange, keyed by state
+    pendingOAuthMap.set(state, { codeVerifier, state, createdAt: Date.now() });
 
     const url = new URL(CLAUDE_AUTHORIZE_URL);
     url.searchParams.set("code", "true");
@@ -305,18 +314,6 @@ export class AutomationHttpHandler {
   }
 
   private async handleAuthExchange(req: IncomingMessage, res: ServerResponse): Promise<void> {
-    if (!pendingOAuth) {
-      json(res, 400, { error: "No pending OAuth session. Start login first." });
-      return;
-    }
-
-    // Expire after 10 minutes
-    if (Date.now() - pendingOAuth.createdAt > 10 * 60 * 1000) {
-      pendingOAuth = null;
-      json(res, 400, { error: "OAuth session expired. Please start again." });
-      return;
-    }
-
     let body: string;
     try {
       body = await readBody(req);
@@ -348,13 +345,19 @@ export class AutomationHttpHandler {
     const authCode = parsed.code.slice(0, hashIdx);
     const callbackState = parsed.code.slice(hashIdx + 1);
 
-    if (callbackState !== pendingOAuth.state) {
-      json(res, 400, { error: "State mismatch. Please start the login flow again." });
+    // Cleanup expired entries
+    for (const [key, val] of pendingOAuthMap) {
+      if (Date.now() - val.createdAt > OAUTH_EXPIRY_MS) pendingOAuthMap.delete(key);
+    }
+
+    const pending = pendingOAuthMap.get(callbackState);
+    if (!pending) {
+      json(res, 400, { error: "No matching OAuth session. Start login again." });
       return;
     }
 
-    const { codeVerifier } = pendingOAuth;
-    pendingOAuth = null;
+    const { codeVerifier } = pending;
+    pendingOAuthMap.delete(callbackState);
 
     // Exchange code for tokens
     try {
@@ -373,7 +376,8 @@ export class AutomationHttpHandler {
 
       if (!tokenRes.ok) {
         const err = await tokenRes.text();
-        json(res, 400, { error: `Token exchange failed (${tokenRes.status}): ${err}` });
+        console.error(`[Auth] Token exchange failed (${tokenRes.status}):`, err);
+        json(res, 400, { error: "Token exchange failed. Please try again." });
         return;
       }
 
@@ -413,8 +417,8 @@ export class AutomationHttpHandler {
 
       json(res, 200, { success: true });
     } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      json(res, 500, { error: `Token exchange error: ${msg}` });
+      console.error("[Auth] Token exchange error:", err);
+      json(res, 500, { error: "Token exchange failed unexpectedly." });
     }
   }
 

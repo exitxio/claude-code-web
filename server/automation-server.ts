@@ -6,6 +6,15 @@ import { AutomationHttpHandler } from "./automation/http-handler";
 config({ path: ".env.local" });
 config({ path: ".env" });
 
+process.on("unhandledRejection", (reason) => {
+  console.error("[Automation] Unhandled rejection:", reason);
+});
+
+process.on("uncaughtException", (err) => {
+  console.error("[Automation] Uncaught exception:", err);
+  process.exit(1);
+});
+
 if (process.env.NODE_ENV === "production") {
   process.chdir("/app");
 }

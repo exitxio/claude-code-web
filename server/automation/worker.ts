@@ -158,9 +158,13 @@ export class AutomationWorker {
         ),
       ]);
 
-      const output = result.subtype === "success"
-        ? (result as SDKResultSuccess).result
-        : (result as any).errors?.join("\n") || "Error";
+      let output: string;
+      if (result.subtype === "success") {
+        output = (result as SDKResultSuccess).result;
+      } else {
+        const errResult = result as SDKResultMessage & { errors?: string[] };
+        output = errResult.errors?.join("\n") || "Error";
+      }
 
       return {
         success: !result.is_error,
