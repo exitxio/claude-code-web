@@ -21,7 +21,7 @@ Claude Code's agent capabilities — file editing, shell execution, tool use —
 
 ### Changing the mode
 
-If you only need file editing (no shell access), switch to `acceptEdits` in `server/automation/worker.ts`:
+If you only need file editing (no shell access), switch to `acceptEdits` in `server/agent/worker.ts`:
 
 ```typescript
 this.session = unstable_v2_createSession({
@@ -41,9 +41,9 @@ With `acceptEdits`, prompts for shell commands or network operations will cause 
 
 ### Service-to-service authentication
 
-Next.js and the automation server communicate over an internal Docker network. All requests are authenticated with HMAC-SHA256 tokens signed with `NEXTAUTH_SECRET` and expire after 5 minutes.
+Next.js and the agent server communicate over an internal Docker network. All requests are authenticated with HMAC-SHA256 tokens signed with `NEXTAUTH_SECRET` and expire after 5 minutes.
 
-The automation server does not expose any port to the host — it is only reachable from the `web` container.
+The agent server does not expose any port to the host — it is only reachable from the `web` container.
 
 ### HTTPS
 
@@ -53,7 +53,7 @@ The app does not terminate TLS itself. For any non-localhost deployment, put a r
 
 ## Claude Credentials
 
-OAuth credentials are stored in a named Docker volume (`claude-auth`) mounted at `/home/node/.claude` inside the automation container. They are never written to the host filesystem.
+OAuth credentials are stored in a named Docker volume (`claude-auth`) mounted at `/home/node/.claude` inside the agent container. They are never written to the host filesystem.
 
 The volume persists across container restarts. To revoke access, remove the volume:
 

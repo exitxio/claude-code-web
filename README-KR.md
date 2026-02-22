@@ -16,7 +16,7 @@ Docker 한 줄 배포.
 브라우저
     ↓
 claude-code-web (Next.js — 인증, 채팅 UI)
-    ↓ HMAC 토큰
+    ↓ HMAC 토큰 (exitx 네트워크)
 claude-code-api (워커 풀 + 큐)
     ↓ Agent SDK
 Claude Code CLI (에이전트 실행)
@@ -27,11 +27,13 @@ Claude Code CLI (에이전트 실행)
 
 ## 빠른 시작
 
+먼저 claude-code-api가 실행 중이어야 합니다. [claude-code-api](https://github.com/exitxio/claude-code-api) 참고.
+
 ```bash
 git clone https://github.com/exitxio/claude-code-web.git
 cd claude-code-web
 cp .env.example .env
-# NEXTAUTH_SECRET=$(openssl rand -base64 32)
+# NEXTAUTH_SECRET= (claude-code-api와 동일한 값)
 # USERS=admin:yourpassword
 
 docker compose up --build
@@ -43,6 +45,42 @@ docker compose -f docker-compose.prod.yml up
 ```
 
 http://localhost:3000 접속 → 로그인 → 헤더의 **"Not logged in · Setup"** 클릭 → Claude 계정 OAuth 인증
+
+## 네트워크
+
+claude-code-web과 claude-code-api는 **별도의** Docker Compose 스택으로 실행되며, 공유 `exitx` 네트워크로 연결됩니다.
+
+```
+claude-code-api (포트 8080)  ──┐
+                                ├── exitx 네트워크
+claude-code-web (포트 3000)  ──┘
+```
+
+claude-code-api가 네트워크를 생성합니다. claude-code-web은 external로 참조:
+
+```yaml
+# docker-compose.yml
+services:
+  web:
+    environment:
+      - AUTOMATION_SERVER_URL=http://claude-code-api:8080  # 환경변수명은 호환성 유지
+    networks:
+      - exitx
+
+networks:
+  exitx:
+    external: true
+```
+
+**실행 순서:** api 먼저, web 나중.
+
+```bash
+# 1. API 시작
+cd claude-code-api && docker compose up -d
+
+# 2. Web 시작
+cd claude-code-web && docker compose up -d
+```
 
 ## 기능
 
@@ -59,13 +97,11 @@ http://localhost:3000 접속 → 로그인 → 헤더의 **"Not logged in · Set
 | `NEXTAUTH_SECRET` | **필수** | JWT 서명용 랜덤 시크릿 (api와 동일 값) |
 | `NEXTAUTH_URL` | `http://localhost:3000` | 앱의 공개 URL |
 | `USERS` | — | `아이디:패스워드` 쌍, 쉼표로 구분 |
-| `CLAUDE_MODEL` | `claude-sonnet-4-6` | 사용할 Claude 모델 |
-| `POOL_SIZE` | `1` | 사전 워밍 워커 수 |
 | `PORT` | `3000` | 웹 포트 |
 
 ## Claude 인증
 
-Claude 자격증명은 api 컨테이너의 Docker named volume(`claude-auth`)에 저장됩니다. 로컬 `~/.claude` 마운트 불필요.
+Claude 자격증명은 **api** 컨테이너의 Docker named volume(`claude-auth`)에 저장됩니다. 로컬 `~/.claude` 마운트 불필요.
 
 1. 앱 접속 → 로그인
 2. 헤더의 **"Not logged in · Setup"** 클릭
