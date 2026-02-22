@@ -25,16 +25,18 @@ Claude Code CLI (agent execution)
 - **claude-code-web** — Chat UI, user authentication, proxies requests to the API
 - **[claude-code-api](https://github.com/exitxio/claude-code-api)** — Automation engine, worker pool, HTTP API with API key auth
 
-`docker compose up` pulls the `claude-code-api` image from GHCR automatically.
+`docker compose up` pulls both images from GHCR automatically — no local build required.
 
 ## Quick Start
 
 ```bash
+git clone https://github.com/exitxio/claude-code-web.git
+cd claude-code-web
 cp .env.example .env
 # NEXTAUTH_SECRET=$(openssl rand -base64 32)
 # USERS=admin:yourpassword
 
-docker compose up --build
+docker compose up
 ```
 
 Open http://localhost:3000 → log in → click **"Not logged in · Setup"** in the header → authenticate with your Claude account via OAuth.
