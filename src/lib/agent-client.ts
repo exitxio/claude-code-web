@@ -1,6 +1,6 @@
 import crypto from "crypto";
 
-const AUTOMATION_SERVER_URL =
+const AGENT_SERVER_URL =
   process.env.AUTOMATION_SERVER_URL || "http://localhost:8080";
 
 export function generateToken(username: string): string {
@@ -12,14 +12,14 @@ export function generateToken(username: string): string {
   return Buffer.from(`${data}:${hmac}`).toString("base64");
 }
 
-export async function automationFetch(
+export async function agentFetch(
   path: string,
   options: RequestInit & { username: string; timeoutMs?: number }
 ): Promise<Response> {
   const { username, timeoutMs = 5000, ...fetchOptions } = options;
   const token = generateToken(username);
 
-  return fetch(`${AUTOMATION_SERVER_URL}${path}`, {
+  return fetch(`${AGENT_SERVER_URL}${path}`, {
     ...fetchOptions,
     headers: {
       "Content-Type": "application/json",

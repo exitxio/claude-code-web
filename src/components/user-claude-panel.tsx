@@ -43,7 +43,7 @@ export function UserClaudePanel() {
         Your personal Claude instructions — applied on top of the global CLAUDE.md
       </p>
       <p className="text-xs text-zinc-700 mb-4 font-mono shrink-0">
-        Stored per user in the automation server
+        Stored per user in the agent server
       </p>
 
       {loading ? (

@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
-import { automationFetch } from "@/lib/automation-client";
+import { agentFetch } from "@/lib/agent-client";
 import {
   addMessage,
   getRecentMessages,
@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
   const timeoutMs = body.timeoutMs ?? 120_000;
 
   try {
-    const res = await automationFetch("/run", {
+    const res = await agentFetch("/run", {
       method: "POST",
       username,
       timeoutMs: timeoutMs + 5000,
@@ -87,7 +87,7 @@ export async function POST(req: NextRequest) {
     }
     console.error("[Claude Run] Error:", err);
     return NextResponse.json(
-      { error: "Cannot connect to automation-server. Run: docker compose up automation-server" },
+      { error: "Cannot connect to agent server. Run: docker compose up api" },
       { status: 502 }
     );
   }

@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
-import { automationFetch } from "@/lib/automation-client";
+import { agentFetch } from "@/lib/agent-client";
 
 async function getUsername(): Promise<string> {
   const session = await getServerSession(authOptions);
@@ -11,7 +11,7 @@ async function getUsername(): Promise<string> {
 export async function GET() {
   const username = await getUsername();
   try {
-    const res = await automationFetch("/user-claude", {
+    const res = await agentFetch("/user-claude", {
       method: "GET",
       username,
       timeoutMs: 5000,
@@ -33,7 +33,7 @@ export async function PUT(req: NextRequest) {
   }
 
   try {
-    const res = await automationFetch("/user-claude", {
+    const res = await agentFetch("/user-claude", {
       method: "PUT",
       username,
       timeoutMs: 5000,

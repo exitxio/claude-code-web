@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
-import { automationFetch } from "@/lib/automation-client";
+import { agentFetch } from "@/lib/agent-client";
 
 export async function DELETE(req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -19,7 +19,7 @@ export async function DELETE(req: NextRequest) {
   }
 
   try {
-    const res = await automationFetch("/session", {
+    const res = await agentFetch("/session", {
       method: "DELETE",
       username,
       timeoutMs: 5000,
