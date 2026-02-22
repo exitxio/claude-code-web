@@ -59,12 +59,12 @@ function ConversationSidebar({
       <div
         className={`${
           open ? "translate-x-0" : "-translate-x-full sm:translate-x-0"
-        } fixed sm:static z-40 sm:z-auto top-0 left-0 h-full w-[260px] shrink-0 bg-zinc-950 border-r border-zinc-800 flex flex-col transition-transform duration-200`}
+        } fixed sm:static z-40 sm:z-auto top-0 left-0 h-full w-[80vw] max-w-[300px] sm:w-[260px] sm:max-w-none shrink-0 bg-zinc-950 border-r border-zinc-800 flex flex-col transition-transform duration-200`}
       >
         <div className="p-3 border-b border-zinc-800">
           <button
             onClick={onNew}
-            className="w-full text-xs px-3 py-2 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition-colors"
+            className="w-full text-xs px-3 py-2 min-h-[44px] rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition-colors"
           >
             + New conversation
           </button>
@@ -75,7 +75,7 @@ function ConversationSidebar({
             <div
               key={c.id}
               onClick={() => onSelect(c.id)}
-              className={`group flex items-start gap-2 px-3 py-2.5 cursor-pointer border-b border-zinc-900 transition-colors ${
+              className={`group flex items-start gap-2 px-3 py-3 cursor-pointer border-b border-zinc-900 transition-colors ${
                 activeId === c.id ? "bg-zinc-800/80" : "hover:bg-zinc-900/60"
               }`}
             >
@@ -92,7 +92,7 @@ function ConversationSidebar({
                   e.stopPropagation();
                   onDelete(c.id);
                 }}
-                className="opacity-0 group-hover:opacity-100 text-zinc-600 hover:text-red-400 text-xs p-0.5 transition-opacity"
+                className="sm:opacity-0 sm:group-hover:opacity-100 text-zinc-600 hover:text-red-400 text-xs p-1 transition-opacity"
                 title="Delete"
               >
                 ✕
@@ -196,8 +196,8 @@ export function ChatInterface() {
                   </svg>
                 </button>
               )}
-              <span className="text-sm font-medium text-zinc-200 mr-2 sm:mr-4 shrink-0 hidden sm:inline">Claude Code Web</span>
-              <span className="text-sm font-medium text-zinc-200 mr-2 shrink-0 sm:hidden">CCW</span>
+              <span className="text-sm font-medium text-zinc-200 mr-2 lg:mr-4 shrink-0 hidden lg:inline">Claude Code Web</span>
+              <span className="text-sm font-medium text-zinc-200 mr-2 shrink-0 lg:hidden">CCW</span>
               {(Object.keys(TAB_LABELS) as Tab[]).map((t) => (
                 <button
                   key={t}
@@ -206,8 +206,8 @@ export function ChatInterface() {
                     tab === t ? "bg-zinc-700 text-zinc-100" : "text-zinc-500 hover:text-zinc-300"
                   }`}
                 >
-                  <span className="sm:hidden">{TAB_LABELS[t].short}</span>
-                  <span className="hidden sm:inline">{TAB_LABELS[t].full}</span>
+                  <span className="lg:hidden">{TAB_LABELS[t].short}</span>
+                  <span className="hidden lg:inline">{TAB_LABELS[t].full}</span>
                 </button>
               ))}
             </div>
@@ -219,11 +219,11 @@ export function ChatInterface() {
                   onClick={() => setShowLogin(true)}
                   className="text-xs px-2 sm:px-3 py-1.5 rounded bg-amber-900/40 border border-amber-700/50 text-amber-400 hover:bg-amber-900/60 transition-colors whitespace-nowrap"
                 >
-                  <span className="hidden sm:inline">Not logged in · </span>Setup
+                  <span className="hidden lg:inline">Not logged in · </span>Setup
                 </button>
               )}
               {claudeAuth === true && (
-                <span className="text-xs text-zinc-600 hidden sm:inline">● Claude connected</span>
+                <span className="text-xs text-zinc-600 hidden lg:inline">● Claude connected</span>
               )}
               {session?.user && (
                 <button
@@ -231,7 +231,7 @@ export function ChatInterface() {
                   title={`Signed in as ${session.user.name || session.user.email}`}
                   className="text-xs text-zinc-600 hover:text-zinc-400 transition-colors whitespace-nowrap"
                 >
-                  <span className="hidden sm:inline">{session.user.name || session.user.email} · </span>Sign out
+                  <span className="hidden lg:inline">{session.user.name || session.user.email} · </span>Sign out
                 </button>
               )}
             </div>

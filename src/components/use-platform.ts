@@ -10,6 +10,14 @@ export function useIsMac() {
   return isMac;
 }
 
+export function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    setIsMobile(navigator.maxTouchPoints > 0);
+  }, []);
+  return isMobile;
+}
+
 export function modKeyLabel(isMac: boolean) {
   return isMac ? "⌘" : "Ctrl+";
 }

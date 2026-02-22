@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useIsMac, modKeyLabel } from "./use-platform";
+import { useIsMac, useIsMobile, modKeyLabel } from "./use-platform";
 
 export function UserClaudePanel() {
   const [content, setContent] = useState("");
@@ -10,6 +10,7 @@ export function UserClaudePanel() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const isMac = useIsMac();
+  const isMobile = useIsMobile();
   const mod = modKeyLabel(isMac);
 
   useEffect(() => {
@@ -71,7 +72,7 @@ export function UserClaudePanel() {
             >
               {saving ? "Saving..." : "Save"}
             </button>
-            <span className="text-xs text-zinc-600">{mod}S to save</span>
+            {!isMobile && <span className="text-xs text-zinc-600">{mod}S to save</span>}
             {saved && <span className="text-xs text-green-500">Saved</span>}
           </div>
         </>

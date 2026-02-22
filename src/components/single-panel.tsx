@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Markdown } from "./markdown";
 import { ElapsedTimer } from "./elapsed-timer";
-import { useIsMac, modKeyLabel } from "./use-platform";
+import { useIsMac, useIsMobile, modKeyLabel } from "./use-platform";
 
 interface SingleResult {
   output?: string;
@@ -18,6 +18,7 @@ export function SinglePanel() {
   const [loading, setLoading] = useState(false);
   const [lastDuration, setLastDuration] = useState<number | null>(null);
   const isMac = useIsMac();
+  const isMobile = useIsMobile();
   const mod = modKeyLabel(isMac);
 
   const handleRun = async () => {
@@ -44,10 +45,10 @@ export function SinglePanel() {
   };
 
   return (
-    <div className="px-4 sm:px-6 py-5 max-w-3xl">
+    <div className="px-4 sm:px-6 py-5 w-full max-w-3xl">
       <div className="flex items-center justify-between mb-4">
         <p className="text-xs text-zinc-600">
-          Rotation worker pool — independent context per request · {mod}Enter to run
+          Rotation worker pool — independent context per request{!isMobile && <> · {mod}Enter to run</>}
         </p>
         <div className="w-12 text-right">
           {loading ? <ElapsedTimer className="text-xs font-mono text-zinc-500" /> : lastDuration != null ? (

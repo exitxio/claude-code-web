@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Markdown } from "./markdown";
 import { ElapsedTimer } from "./elapsed-timer";
-import { useIsMac, modKeyLabel } from "./use-platform";
+import { useIsMac, useIsMobile, modKeyLabel } from "./use-platform";
 
 interface Message {
   role: "user" | "assistant";
@@ -30,6 +30,7 @@ export function ChatPanel({
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const isMac = useIsMac();
+  const isMobile = useIsMobile();
   const mod = modKeyLabel(isMac);
 
   // Generate or reuse session from conversationId
@@ -141,7 +142,7 @@ export function ChatPanel({
           <p className="text-xs text-zinc-600 text-center mt-12">Loading messages...</p>
         ) : messages.length === 0 ? (
           <p className="text-xs text-zinc-600 text-center mt-12">
-            Context is maintained across turns · {mod}Enter to send
+            Context is maintained across turns{!isMobile && <> · {mod}Enter to send</>}
           </p>
         ) : null}
         {messages.map((msg, i) => (
@@ -189,14 +190,14 @@ export function ChatPanel({
                 handleSend();
               }
             }}
-            placeholder={`Type a message... (${mod}Enter to send)`}
+            placeholder={isMobile ? "Type a message..." : `Type a message... (${mod}Enter to send)`}
             rows={2}
             className="flex-1 px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-sm text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-600 resize-none font-mono transition-colors"
           />
           <button
             onClick={handleSend}
             disabled={loading || !input.trim()}
-            className="px-3 sm:px-4 py-2 self-stretch bg-zinc-700 hover:bg-zinc-600 disabled:opacity-40 text-zinc-100 rounded-lg text-sm font-medium transition-colors"
+            className="px-3 sm:px-4 py-2 min-h-[44px] self-stretch bg-zinc-700 hover:bg-zinc-600 disabled:opacity-40 text-zinc-100 rounded-lg text-sm font-medium transition-colors"
           >
             Send
           </button>
