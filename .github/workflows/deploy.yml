@@ -1,0 +1,61 @@
+name: Build and Deploy to OKE
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  REGISTRY: icn.ocir.io
+  OCI_NAMESPACE: cnqphqevfxnp
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-24.04-arm
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to OCIR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ env.OCI_NAMESPACE }}/codelab
+          password: ${{ secrets.OCI_AUTH_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile.next
+          target: runner
+          platforms: linux/arm64
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.OCI_NAMESPACE }}/ccweb:latest
+            ${{ env.REGISTRY }}/${{ env.OCI_NAMESPACE }}/ccweb:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    needs: build-and-push
+    runs-on: [self-hosted, oke]
+
+    steps:
+      - name: Checkout deploy manifests
+        uses: actions/checkout@v4
+        with:
+          repository: exitxio/deploy
+          token: ${{ secrets.DEPLOY_REPO_TOKEN }}
+          path: deploy
+
+      - name: Deploy to OKE
+        run: |
+          kubectl apply -k deploy/services/ccweb/
+          kubectl rollout restart deployment/ccweb -n app
+          kubectl rollout status deployment/ccweb -n app --timeout=120s
+          kubectl get pods -n app -l app=ccweb

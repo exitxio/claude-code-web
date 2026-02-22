@@ -1,29 +1,19 @@
-import crypto from "crypto";
-
 const AGENT_SERVER_URL =
   process.env.AUTOMATION_SERVER_URL || "http://localhost:8080";
 
-export function generateToken(username: string): string {
-  const secret = process.env.NEXTAUTH_SECRET;
-  if (!secret) throw new Error("NEXTAUTH_SECRET is not set");
-  const timestamp = Date.now();
-  const data = `${username}:${timestamp}`;
-  const hmac = crypto.createHmac("sha256", secret).update(data).digest("hex");
-  return Buffer.from(`${data}:${hmac}`).toString("base64");
-}
+const API_KEY = process.env.CCAPI_KEY || "";
 
 export async function agentFetch(
   path: string,
   options: RequestInit & { username: string; timeoutMs?: number }
 ): Promise<Response> {
   const { username, timeoutMs = 5000, ...fetchOptions } = options;
-  const token = generateToken(username);
 
   return fetch(`${AGENT_SERVER_URL}${path}`, {
     ...fetchOptions,
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
+      "x-api-key": API_KEY,
       ...(fetchOptions.headers as Record<string, string>),
     },
     signal: AbortSignal.timeout(timeoutMs),

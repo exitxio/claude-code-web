@@ -10,7 +10,7 @@ services:
       - NODE_ENV=production
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
       - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
-      - AUTOMATION_SERVER_URL=http://claude-code-api:8080
+      - AUTOMATION_SERVER_URL=http://exitx-ccapi:8080
       - USERS=${USERS:-}
       - DATA_DIR=/data
     volumes:

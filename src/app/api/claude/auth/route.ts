@@ -1,9 +1,7 @@
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
-import { agentFetch, generateToken } from "@/lib/agent-client";
-
-const agentUrl = () => process.env.AUTOMATION_SERVER_URL || "http://localhost:8080";
+import { agentFetch } from "@/lib/agent-client";
 
 export async function GET() {
   const session = await getServerSession(authOptions);
@@ -21,7 +19,6 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
   const username = session?.user?.name || session?.user?.email || "anonymous";
-  const token = generateToken(username);
 
   const { searchParams } = new URL(req.url);
   const action = searchParams.get("action");
@@ -30,12 +27,9 @@ export async function POST(req: NextRequest) {
   if (action === "exchange") {
     try {
       const body = await req.text();
-      const res = await fetch(`${agentUrl()}/auth/exchange`, {
+      const res = await agentFetch("/auth/exchange", {
+        username,
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
         body,
       });
       const data = await res.json();
@@ -48,9 +42,9 @@ export async function POST(req: NextRequest) {
 
   // POST /api/claude/auth — start OAuth, get URL
   try {
-    const res = await fetch(`${agentUrl()}/auth/login`, {
+    const res = await agentFetch("/auth/login", {
+      username,
       method: "POST",
-      headers: { Authorization: `Bearer ${token}` },
     });
     const data = await res.json();
     return NextResponse.json(data, { status: res.status });
