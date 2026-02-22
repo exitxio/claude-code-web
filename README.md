@@ -36,13 +36,15 @@ cp .env.example .env
 # NEXTAUTH_SECRET= (must match claude-code-api)
 # USERS=admin:yourpassword
 
-docker compose up --build
+pnpm docker:up
 ```
 
-For production (pre-built images, no local build):
-```bash
-docker compose -f docker-compose.prod.yml up
-```
+| Script | Command |
+|--------|---------|
+| `pnpm docker:up` | Build & start containers |
+| `pnpm docker:down` | Stop containers |
+| `pnpm docker:logs` | Follow container logs |
+| `pnpm docker:prod` | Start with pre-built GHCR image |
 
 Open http://localhost:3000 → log in → click **"Not logged in · Setup"** in the header → authenticate with your Claude account via OAuth.
 
@@ -76,10 +78,10 @@ networks:
 
 ```bash
 # 1. Start API
-cd claude-code-api && docker compose up -d
+cd claude-code-api && pnpm docker:up
 
 # 2. Start Web
-cd claude-code-web && docker compose up -d
+cd claude-code-web && pnpm docker:up
 ```
 
 ## Features

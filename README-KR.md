@@ -36,13 +36,15 @@ cp .env.example .env
 # NEXTAUTH_SECRET= (claude-code-api와 동일한 값)
 # USERS=admin:yourpassword
 
-docker compose up --build
+pnpm docker:up
 ```
 
-프로덕션 (미리 빌드된 이미지, 로컬 빌드 없음):
-```bash
-docker compose -f docker-compose.prod.yml up
-```
+| 스크립트 | 동작 |
+|----------|------|
+| `pnpm docker:up` | 빌드 & 컨테이너 시작 |
+| `pnpm docker:down` | 컨테이너 중지 |
+| `pnpm docker:logs` | 컨테이너 로그 추적 |
+| `pnpm docker:prod` | GHCR 이미지로 시작 |
 
 http://localhost:3000 접속 → 로그인 → 헤더의 **"Not logged in · Setup"** 클릭 → Claude 계정 OAuth 인증
 
@@ -76,10 +78,10 @@ networks:
 
 ```bash
 # 1. API 시작
-cd claude-code-api && docker compose up -d
+cd claude-code-api && pnpm docker:up
 
 # 2. Web 시작
-cd claude-code-web && docker compose up -d
+cd claude-code-web && pnpm docker:up
 ```
 
 ## 기능
