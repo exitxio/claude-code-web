@@ -23,7 +23,7 @@ Claude Code CLI (에이전트 실행)
 ```
 
 - **claude-code-web** — 채팅 UI, 사용자 인증, API로 요청 프록시
-- **[claude-code-api](https://github.com/exitxio/claude-code-api)** — 자동화 엔진, 워커 풀, API key 인증 지원 HTTP API
+- **[claude-code-api](https://github.com/exitxio/claude-code-api)** — 에이전트 엔진, 워커 풀, API key 인증 지원 HTTP API
 
 ## 빠른 시작
 
@@ -60,7 +60,7 @@ http://localhost:3000 접속 → 로그인 → 헤더의 **"Not logged in · Set
 | `NEXTAUTH_URL` | `http://localhost:3000` | 앱의 공개 URL |
 | `USERS` | — | `아이디:패스워드` 쌍, 쉼표로 구분 |
 | `CLAUDE_MODEL` | `claude-sonnet-4-6` | 사용할 Claude 모델 |
-| `AUTOMATION_POOL_SIZE` | `1` | 사전 워밍 워커 수 |
+| `POOL_SIZE` | `1` | 사전 워밍 워커 수 |
 | `PORT` | `3000` | 웹 포트 |
 
 ## Claude 인증

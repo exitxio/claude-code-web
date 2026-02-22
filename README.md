@@ -23,7 +23,7 @@ Claude Code CLI (agent execution)
 ```
 
 - **claude-code-web** — Chat UI, user authentication, proxies requests to the API
-- **[claude-code-api](https://github.com/exitxio/claude-code-api)** — Automation engine, worker pool, HTTP API with API key auth
+- **[claude-code-api](https://github.com/exitxio/claude-code-api)** — Agent engine, worker pool, HTTP API with API key auth
 
 ## Quick Start
 
@@ -60,7 +60,7 @@ Open http://localhost:3000 → log in → click **"Not logged in · Setup"** in 
 | `NEXTAUTH_URL` | `http://localhost:3000` | Public URL of the app |
 | `USERS` | — | `username:password` pairs, comma-separated |
 | `CLAUDE_MODEL` | `claude-sonnet-4-6` | Claude model to use |
-| `AUTOMATION_POOL_SIZE` | `1` | Number of pre-warmed workers |
+| `POOL_SIZE` | `1` | Number of pre-warmed workers |
 | `PORT` | `3000` | Web port |
 
 ## Claude Authentication

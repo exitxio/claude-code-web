@@ -5,11 +5,11 @@ services:
     environment:
       - NODE_ENV=production
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
-      - AUTOMATION_POOL_SIZE=${AUTOMATION_POOL_SIZE:-1}
+      - POOL_SIZE=${POOL_SIZE:-1}
       - CLAUDE_MODEL=${CLAUDE_MODEL:-claude-sonnet-4-6}
     volumes:
       - claude-auth:/home/node/.claude
-      - automation-home:/home/node/users
+      - agent-home:/home/node/users
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
@@ -39,5 +39,5 @@ services:
 
 volumes:
   claude-auth:
-  automation-home:
+  agent-home:
   web-data:
