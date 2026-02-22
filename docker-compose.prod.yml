@@ -1,41 +1,24 @@
 services:
-  api:
-    image: ghcr.io/exitxio/claude-code-api:latest
-    restart: unless-stopped
-    environment:
-      - NODE_ENV=production
-      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
-      - POOL_SIZE=${POOL_SIZE:-1}
-      - CLAUDE_MODEL=${CLAUDE_MODEL:-claude-sonnet-4-6}
-    volumes:
-      - claude-auth:/home/node/.claude
-      - agent-home:/home/node/users
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
-
   web:
     image: ghcr.io/exitxio/claude-code-web:latest
-    restart: unless-stopped
+    restart: always
     ports:
       - "${PORT:-3000}:3000"
     environment:
       - NODE_ENV=production
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
       - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
-      - AUTOMATION_SERVER_URL=http://api:8080
+      - AUTOMATION_SERVER_URL=http://claude-code-api:8080
       - USERS=${USERS:-}
       - DATA_DIR=/data
     volumes:
       - web-data:/data
-    depends_on:
-      api:
-        condition: service_healthy
+    networks:
+      - exitx
 
 volumes:
-  claude-auth:
-  agent-home:
   web-data:
+
+networks:
+  exitx:
+    external: true
