@@ -34,6 +34,9 @@ services:
       - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
       - AUTOMATION_SERVER_URL=http://automation-server:8080
       - USERS=${USERS:-}
+      - DATA_DIR=/data
+    volumes:
+      - web-data:/data
     depends_on:
       automation-server:
         condition: service_healthy
@@ -41,3 +44,4 @@ services:
 volumes:
   claude-auth:
   automation-home:
+  web-data:

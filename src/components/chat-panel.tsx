@@ -12,35 +12,57 @@ interface Message {
   error?: boolean;
 }
 
-export function ChatPanel() {
+export function ChatPanel({
+  conversationId,
+  onConversationCreated,
+  onTitleUpdate,
+}: {
+  conversationId: string | null;
+  onConversationCreated: (id: string) => void;
+  onTitleUpdate: (id: string, title: string) => void;
+}) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const [needsResume, setNeedsResume] = useState(false);
   const [sessionId, setSessionId] = useState<string>("");
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const isMac = useIsMac();
   const mod = modKeyLabel(isMac);
 
+  // Generate or reuse session from conversationId
   useEffect(() => {
-    setSessionId((prev) => prev || crypto.randomUUID());
-  }, []);
+    if (conversationId) {
+      setSessionId(conversationId);
+      setNeedsResume(true);
+      // Load existing messages
+      setLoadingHistory(true);
+      fetch(`/api/claude/conversations/${conversationId}/messages`)
+        .then((r) => r.json())
+        .then((d) => {
+          const msgs: Message[] = (d.messages || []).map(
+            (m: { role: string; content: string; duration_ms?: number }) => ({
+              role: m.role as "user" | "assistant",
+              content: m.content,
+              durationMs: m.duration_ms ?? undefined,
+            })
+          );
+          setMessages(msgs);
+        })
+        .catch(() => {})
+        .finally(() => setLoadingHistory(false));
+    } else {
+      setSessionId(crypto.randomUUID());
+      setMessages([]);
+      setNeedsResume(false);
+    }
+  }, [conversationId]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
-
-  const newConversation = () => {
-    const old = sessionId;
-    setSessionId(crypto.randomUUID());
-    setMessages([]);
-    textareaRef.current?.focus();
-    fetch("/api/claude/session", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sessionId: old }),
-    }).catch(() => { /* best-effort cleanup */ });
-  };
 
   const handleSend = async () => {
     const prompt = input.trim();
@@ -48,22 +70,48 @@ export function ChatPanel() {
     setInput("");
     setMessages((m) => [...m, { role: "user", content: prompt }]);
     setLoading(true);
-    const startTime = Date.now();
+
+    let convId = conversationId;
+
     try {
+      // Create conversation on first message if none exists
+      if (!convId) {
+        const res = await fetch("/api/claude/conversations", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({}),
+        });
+        const d = await res.json();
+        convId = d.conversation.id;
+        setSessionId(convId!);
+        onConversationCreated(convId!);
+      }
+
       const res = await fetch("/api/claude/run", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt, sessionId }),
+        body: JSON.stringify({
+          prompt,
+          sessionId: convId,
+          conversationId: convId,
+          resume: needsResume,
+        }),
       });
       const data = await res.json();
-      const durationMs = Date.now() - startTime;
+
+      // After first resume message, SDK session maintains context
+      if (needsResume) setNeedsResume(false);
+
       if (data.error) {
         setMessages((m) => [...m, { role: "assistant", content: data.error, error: true }]);
       } else {
         setMessages((m) => [
           ...m,
-          { role: "assistant", content: data.output || "*(empty response)*", durationMs },
+          { role: "assistant", content: data.output || "*(empty response)*", durationMs: data.durationMs },
         ]);
+        if (data._title) {
+          onTitleUpdate(convId!, data._title);
+        }
       }
     } catch (e) {
       setMessages((m) => [
@@ -79,22 +127,23 @@ export function ChatPanel() {
     <div className="flex flex-col flex-1 min-h-0">
       {/* Session bar */}
       <div className="flex items-center justify-between px-4 sm:px-6 py-2 border-b border-zinc-800/60 shrink-0">
-        <span className="text-xs text-zinc-600 font-mono truncate">session {sessionId.slice(0, 8)}</span>
-        <button
-          onClick={newConversation}
-          className="text-xs text-zinc-500 hover:text-zinc-300 border border-zinc-800 hover:border-zinc-600 px-2.5 py-1 rounded transition-colors"
-        >
-          New conversation
-        </button>
+        <span className="text-xs text-zinc-600 font-mono truncate">
+          session {sessionId.slice(0, 8)}
+          {needsResume && (
+            <span className="ml-2 text-amber-600">(resume pending)</span>
+          )}
+        </span>
       </div>
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-4 min-h-0">
-        {messages.length === 0 && (
+        {loadingHistory ? (
+          <p className="text-xs text-zinc-600 text-center mt-12">Loading messages...</p>
+        ) : messages.length === 0 ? (
           <p className="text-xs text-zinc-600 text-center mt-12">
             Context is maintained across turns · {mod}Enter to send
           </p>
-        )}
+        ) : null}
         {messages.map((msg, i) => (
           <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
             <div

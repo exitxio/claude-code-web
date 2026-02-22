@@ -28,24 +28,34 @@ export async function POST(req: NextRequest) {
 
   // POST /api/claude/auth?action=exchange — exchange CODE#STATE for tokens
   if (action === "exchange") {
-    const body = await req.text();
-    const res = await fetch(`${automationUrl()}/auth/exchange`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body,
-    });
-    const data = await res.json();
-    return NextResponse.json(data, { status: res.status });
+    try {
+      const body = await req.text();
+      const res = await fetch(`${automationUrl()}/auth/exchange`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body,
+      });
+      const data = await res.json();
+      return NextResponse.json(data, { status: res.status });
+    } catch (err) {
+      console.error("[Auth] Exchange error:", err);
+      return NextResponse.json({ error: "Failed to reach automation server" }, { status: 502 });
+    }
   }
 
   // POST /api/claude/auth — start OAuth, get URL
-  const res = await fetch(`${automationUrl()}/auth/login`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  const data = await res.json();
-  return NextResponse.json(data, { status: res.status });
+  try {
+    const res = await fetch(`${automationUrl()}/auth/login`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json();
+    return NextResponse.json(data, { status: res.status });
+  } catch (err) {
+    console.error("[Auth] Login error:", err);
+    return NextResponse.json({ error: "Failed to reach automation server" }, { status: 502 });
+  }
 }
