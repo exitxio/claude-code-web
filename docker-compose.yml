@@ -18,9 +18,7 @@ services:
       start_period: 60s
 
   web:
-    build:
-      context: .
-      dockerfile: Dockerfile.next
+    image: ghcr.io/exitxio/claude-code-web:latest
     restart: unless-stopped
     ports:
       - "${PORT:-3000}:3000"
